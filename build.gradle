@@ -26,13 +26,20 @@ if (envFile.exists()) {
     }
 }
 
+def githubUser = env['GITHUB_USER'] ?: System.getenv('GITHUB_USER')
+def githubToken = env['GITHUB_TOKEN'] ?: System.getenv('GITHUB_TOKEN')
+
+if (!githubUser || !githubToken) {
+    throw new GradleException("GITHUB_USER/GITHUB_TOKEN이 필요합니다. .env 또는 환경변수로 설정하세요.")
+}
+
 repositories {
     mavenCentral()
     maven {
         url = 'https://maven.pkg.github.com/first-ticket/common'
         credentials {
-            username = env['GITHUB_USER']
-            password = env['GITHUB_TOKEN']
+            username = githubUser
+            password = githubToken
         }
     }
 }
