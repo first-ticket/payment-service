@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -48,6 +50,10 @@ public class Payment extends BaseUserEntity {
     @Column(name = "retry_expired_at")
     private LocalDateTime retryExpiredAt;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "payment_id")
+    private List<PaymentHistory> histories = new ArrayList<>();
+
     public static Payment create(UUID bookingId, UUID userId, String orderId, Integer finalAmount) {
         return new Payment(
             UUID.randomUUID(),
@@ -59,7 +65,8 @@ public class Payment extends BaseUserEntity {
             PaymentStatus.PENDING,
             LocalDateTime.now(),
             null,           // approvedAt
-            null            // retryExpiredAt
+            null,            // retryExpiredAt
+            new ArrayList<>()
         );
     }
 
@@ -68,16 +75,19 @@ public class Payment extends BaseUserEntity {
         this.paymentKey = paymentKey;
         this.status = PaymentStatus.SUCCESS;
         this.approvedAt = approvedAt;
+        this.histories.add(PaymentHistory.create(this.id, PaymentStatus.SUCCESS, null, null));
     }
 
     // 결제 실패
     public void fail(int retryTtlSeconds) {
         this.status = PaymentStatus.FAILED;
         this.retryExpiredAt = LocalDateTime.now().plusSeconds(retryTtlSeconds);
+        this.histories.add(PaymentHistory.create(this.id, PaymentStatus.FAILED, null, null));
     }
 
     // 환불
     public void refund() {
         this.status = PaymentStatus.REFUNDED;
+        this.histories.add(PaymentHistory.create(this.id, PaymentStatus.REFUNDED, null, null));
     }
 }
