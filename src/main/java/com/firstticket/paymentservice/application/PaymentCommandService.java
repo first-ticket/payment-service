@@ -1,9 +1,12 @@
 package com.firstticket.paymentservice.application;
 
+import com.firstticket.paymentservice.application.dto.command.ConfirmPaymentCommand;
 import com.firstticket.paymentservice.application.dto.command.CreatePaymentCommand;
 import com.firstticket.paymentservice.application.dto.result.PaymentResult;
 import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentRepository;
+import com.firstticket.paymentservice.domain.service.TossPaymentsPort;
+import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ import java.util.UUID;
 public class PaymentCommandService {
 
     private final PaymentRepository paymentRepository;
+    private final TossPaymentsPort tossPaymentsPort;
 
     @Transactional
     public PaymentResult createPayment(CreatePaymentCommand command) {
@@ -41,5 +45,30 @@ public class PaymentCommandService {
                         .orElseThrow(() -> e);
                 }
             });
+    }
+
+    @Transactional
+    public PaymentResult confirmPayment(ConfirmPaymentCommand command) {
+        // 1. orderId로 결제 조회
+        Payment payment = paymentRepository.findByOrderId(command.orderId())
+            .orElseThrow(() -> new IllegalArgumentException("결제를 찾을 수 없습니다."));
+
+        // 2. 금액 위변조 검증
+        if (!payment.getFinalAmount().equals(command.amount())) {
+            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+        }
+
+        // 3. 토스 승인 요청
+        TossConfirmResult result = tossPaymentsPort.confirm(
+            command.paymentKey(),
+            command.orderId(),
+            command.amount()
+        );
+
+        // 4. 결제 상태 변경
+        payment.confirm(result.paymentKey(), result.approvedAt());
+        paymentRepository.save(payment);
+
+        return PaymentResult.from(payment);
     }
 }
