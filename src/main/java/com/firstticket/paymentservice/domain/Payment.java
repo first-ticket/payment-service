@@ -1,5 +1,6 @@
 package com.firstticket.paymentservice.domain;
 
+import com.firstticket.common.persistence.BaseEntity;
 import com.firstticket.common.persistence.BaseUserEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -17,12 +18,12 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Payment extends BaseUserEntity {
+public class Payment extends BaseEntity {
     @Id
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "booking_id", nullable = false)
+    @Column(name = "booking_id", nullable = false, unique = true)
     private UUID bookingId;
 
     @Column(name = "user_id", nullable = false)
