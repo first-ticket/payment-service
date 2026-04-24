@@ -28,4 +28,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     public Optional<Payment> findByOrderId(String orderId) {
         return paymentJpaRepository.findByOrderId(orderId);
     }
+
+    @Override
+    public Optional<Payment> findByBookingId(UUID bookingId) {return paymentJpaRepository.findByBookingId(bookingId);}
 }

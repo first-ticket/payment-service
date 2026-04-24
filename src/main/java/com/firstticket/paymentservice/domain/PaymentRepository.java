@@ -10,4 +10,6 @@ public interface PaymentRepository {
     Optional<Payment> findById(UUID id);
 
     Optional<Payment> findByOrderId(String orderId);
+
+    Optional<Payment> findByBookingId(UUID bookingId);
 }

@@ -18,16 +18,20 @@ public class PaymentCommandService {
 
     @Transactional
     public PaymentResult createPayment(CreatePaymentCommand command) {
-        String orderId = UUID.randomUUID().toString().replace("-", "");
+        return paymentRepository.findByBookingId(command.bookingId())
+            .map(PaymentResult::from)
+            .orElseGet(() -> {
+                String orderId = UUID.randomUUID().toString().replace("-", "");
 
-        Payment payment = Payment.create(
-            command.bookingId(),
-            command.userId(),
-            orderId,
-            command.finalAmount()
-        );
+                Payment payment = Payment.create(
+                    command.bookingId(),
+                    command.userId(),
+                    orderId,
+                    command.finalAmount()
+                );
 
-        Payment savedPayment = paymentRepository.save(payment);
-        return PaymentResult.from(savedPayment);
+                Payment savedPayment = paymentRepository.save(payment);
+                return PaymentResult.from(savedPayment);
+            });
     }
 }

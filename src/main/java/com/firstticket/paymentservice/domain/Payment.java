@@ -23,7 +23,7 @@ public class Payment extends BaseEntity {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "booking_id", nullable = false)
+    @Column(name = "booking_id", nullable = false, unique = true)
     private UUID bookingId;
 
     @Column(name = "user_id", nullable = false)
