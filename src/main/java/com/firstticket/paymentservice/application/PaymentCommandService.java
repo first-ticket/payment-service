@@ -18,7 +18,7 @@ public class PaymentCommandService {
 
     @Transactional
     public PaymentResult createPayment(CreatePaymentCommand command) {
-        String orderId = UUID.randomUUID().toString().replace("-", "").substring(0, 64);
+        String orderId = UUID.randomUUID().toString().replace("-", "");
 
         Payment payment = Payment.create(
             command.bookingId(),
