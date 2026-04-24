@@ -5,6 +5,7 @@ import com.firstticket.paymentservice.application.dto.result.PaymentResult;
 import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,8 +31,15 @@ public class PaymentCommandService {
                     command.finalAmount()
                 );
 
-                Payment savedPayment = paymentRepository.save(payment);
-                return PaymentResult.from(savedPayment);
+                try {
+                    Payment savedPayment = paymentRepository.save(payment);
+                    return PaymentResult.from(savedPayment);
+                } catch (DataIntegrityViolationException e) {
+                    // 동시 요청으로 unique 제약 위반 시 기존 결제 반환
+                    return paymentRepository.findByBookingId(command.bookingId())
+                        .map(PaymentResult::from)
+                        .orElseThrow(() -> e);
+                }
             });
     }
 }
