@@ -27,7 +27,7 @@ public class PaymentController {
         return ApiResponse.success(CommonSuccessCode.OK, response);
     }
 
-    @GetMapping("/confirm-redirect")
+    @GetMapping(value = "/confirm-redirect", produces = "application/json;charset=UTF-8")
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmPaymentRedirect(
         @RequestParam String paymentKey,
         @RequestParam String orderId,
