@@ -3,13 +3,18 @@ package com.firstticket.paymentservice.presentation;
 import com.firstticket.common.response.ApiResponse;
 import com.firstticket.common.response.CommonSuccessCode;
 import com.firstticket.paymentservice.application.PaymentCommandService;
+import com.firstticket.paymentservice.application.PaymentQueryService;
 import com.firstticket.paymentservice.application.dto.command.ConfirmPaymentCommand;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentConfirmRequest;
+import com.firstticket.paymentservice.presentation.dto.request.PaymentRefundRequest;
 import com.firstticket.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
 
     private final PaymentCommandService paymentCommandService;
+    private final PaymentQueryService paymentQueryService;
 
     @PostMapping("/confirm")
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(
@@ -40,6 +46,39 @@ public class PaymentController {
             paymentCommandService.confirmPayment(
                 new ConfirmPaymentCommand(paymentKey, orderId, amount)
             )
+        );
+        return ApiResponse.success(CommonSuccessCode.OK, response);
+    }
+
+    // 결제 상세 조회
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(
+        @PathVariable UUID paymentId,
+        @RequestParam UUID userId) {
+        PaymentResponse response = PaymentResponse.from(
+            paymentQueryService.getPayment(paymentId, userId)
+        );
+        return ApiResponse.success(CommonSuccessCode.OK, response);
+    }
+
+    // 본인 결제 목록 조회
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getMyPayments(
+        @RequestParam UUID userId) {
+        List<PaymentResponse> response = paymentQueryService.getMyPayments(userId)
+            .stream()
+            .map(PaymentResponse::from)
+            .toList();
+        return ApiResponse.success(CommonSuccessCode.OK, response);
+    }
+
+    // 환불
+    @PostMapping("/{paymentId}/refund")
+    public ResponseEntity<ApiResponse<PaymentResponse>> refundPayment(
+        @PathVariable UUID paymentId,
+        @RequestBody @Valid PaymentRefundRequest request) {
+        PaymentResponse response = PaymentResponse.from(
+            paymentCommandService.refundPayment(request.toCommand(paymentId))
         );
         return ApiResponse.success(CommonSuccessCode.OK, response);
     }
