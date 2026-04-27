@@ -2,6 +2,7 @@ package com.firstticket.paymentservice.application;
 
 import com.firstticket.paymentservice.application.dto.command.ConfirmPaymentCommand;
 import com.firstticket.paymentservice.application.dto.command.CreatePaymentCommand;
+import com.firstticket.paymentservice.application.dto.command.RefundPaymentCommand;
 import com.firstticket.paymentservice.application.dto.result.PaymentResult;
 import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentRepository;
@@ -81,6 +82,32 @@ public class PaymentCommandService {
 
         // 5. 결제 상태 변경
         payment.confirm(result.paymentKey(), result.approvedAt());
+        paymentRepository.save(payment);
+
+        return PaymentResult.from(payment);
+    }
+
+    @Transactional
+    public PaymentResult refundPayment(RefundPaymentCommand command) {
+        // 1. 결제 조회
+        Payment payment = paymentRepository.findById(command.paymentId())
+            .orElseThrow(() -> new IllegalArgumentException("결제를 찾을 수 없습니다."));
+
+        // 2. 본인 확인
+        if (!payment.getUserId().equals(command.userId())) {
+            throw new IllegalArgumentException("본인의 결제만 환불할 수 있습니다.");
+        }
+
+        // 3. 환불 가능 상태 확인
+        if (payment.getStatus() != PaymentStatus.SUCCESS) {
+            throw new IllegalStateException("승인된 결제만 환불할 수 있습니다.");
+        }
+
+        // 4. 토스 취소 요청
+        tossPaymentsPort.cancel(payment.getPaymentKey(), command.cancelReason());
+
+        // 5. 결제 상태 변경
+        payment.refund();
         paymentRepository.save(payment);
 
         return PaymentResult.from(payment);
