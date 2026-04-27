@@ -41,6 +41,10 @@ public class TossPaymentsAdapter implements TossPaymentsPort {
             TossConfirmResponse.class
         );
 
+        if (response == null) {
+            throw new IllegalStateException("토스 결제 승인 응답이 비어있습니다.");
+        }
+
         return response.toResult();
     }
 
@@ -56,6 +60,10 @@ public class TossPaymentsAdapter implements TossPaymentsPort {
             TossCancelResponse.class,
             paymentKey
         );
+
+        if (response == null) {
+            throw new IllegalStateException("토스 결제 취소 응답이 비어있습니다.");
+        }
 
         return response.toResult();
     }

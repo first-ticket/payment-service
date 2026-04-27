@@ -26,7 +26,11 @@ public class PaymentController {
         );
         return ApiResponse.success(CommonSuccessCode.OK, response);
     }
-
+    /**
+     * 테스트용 엔드포인트 - Booking 서비스 연동 완료 후 제거 예정
+     * @deprecated 테스트 완료 후 제거 예정
+     */
+    @Deprecated
     @GetMapping(value = "/confirm-redirect", produces = "application/json;charset=UTF-8")
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmPaymentRedirect(
         @RequestParam String paymentKey,

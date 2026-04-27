@@ -5,6 +5,7 @@ import com.firstticket.paymentservice.application.dto.command.CreatePaymentComma
 import com.firstticket.paymentservice.application.dto.result.PaymentResult;
 import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentRepository;
+import com.firstticket.paymentservice.domain.PaymentStatus;
 import com.firstticket.paymentservice.domain.service.TossPaymentsPort;
 import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
 import lombok.RequiredArgsConstructor;
@@ -53,19 +54,24 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findByOrderId(command.orderId())
             .orElseThrow(() -> new IllegalArgumentException("결제를 찾을 수 없습니다."));
 
-        // 2. 금액 위변조 검증
+        // 2. 이미 승인된 결제면 기존 결과 반환 (멱등성)
+        if (payment.getStatus() == PaymentStatus.SUCCESS) {
+            return PaymentResult.from(payment);
+        }
+
+        // 3. 금액 위변조 검증
         if (!payment.getFinalAmount().equals(command.amount())) {
             throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
         }
 
-        // 3. 토스 승인 요청
+        // 4. 토스 승인 요청
         TossConfirmResult result = tossPaymentsPort.confirm(
             command.paymentKey(),
             command.orderId(),
             command.amount()
         );
 
-        // 4. 결제 상태 변경
+        // 5. 결제 상태 변경
         payment.confirm(result.paymentKey(), result.approvedAt());
         paymentRepository.save(payment);
 
