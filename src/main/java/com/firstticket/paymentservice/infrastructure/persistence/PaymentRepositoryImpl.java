@@ -5,6 +5,7 @@ import com.firstticket.paymentservice.domain.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,4 +32,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public Optional<Payment> findByBookingId(UUID bookingId) {return paymentJpaRepository.findByBookingId(bookingId);}
+
+    @Override
+    public List<Payment> findAllByUserId(UUID userId) {return paymentJpaRepository.findAllByUserId(userId);}
 }
