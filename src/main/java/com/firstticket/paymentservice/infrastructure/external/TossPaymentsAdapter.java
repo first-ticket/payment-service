@@ -31,6 +31,7 @@ public class TossPaymentsAdapter implements TossPaymentsPort {
 
     @Override
     public TossConfirmResult confirm(String paymentKey, String orderId, Integer amount) {
+        System.out.println("secretKey: [" + secretKey + "]");
         HttpHeaders headers = createHeaders();
         TossConfirmRequest request = new TossConfirmRequest(paymentKey, orderId, amount);
         HttpEntity<TossConfirmRequest> entity = new HttpEntity<>(request, headers);

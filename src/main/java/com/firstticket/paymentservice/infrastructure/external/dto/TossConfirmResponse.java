@@ -3,7 +3,7 @@ package com.firstticket.paymentservice.infrastructure.external.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record TossConfirmResponse(
@@ -11,7 +11,7 @@ public record TossConfirmResponse(
     String orderId,
     Integer totalAmount,
     String status,
-    LocalDateTime approvedAt
+    OffsetDateTime approvedAt
 ) {
     public TossConfirmResult toResult() {
         return new TossConfirmResult(
@@ -19,7 +19,7 @@ public record TossConfirmResponse(
             this.orderId,
             this.totalAmount,
             this.status,
-            this.approvedAt
+            this.approvedAt != null ? this.approvedAt.toLocalDateTime() : null
         );
     }
 }
