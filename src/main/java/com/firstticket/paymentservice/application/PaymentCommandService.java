@@ -7,6 +7,8 @@ import com.firstticket.paymentservice.application.dto.result.PaymentResult;
 import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentRepository;
 import com.firstticket.paymentservice.domain.PaymentStatus;
+import com.firstticket.paymentservice.domain.exception.PaymentErrorCode;
+import com.firstticket.paymentservice.domain.exception.PaymentException;
 import com.firstticket.paymentservice.domain.service.TossPaymentsPort;
 import com.firstticket.paymentservice.domain.service.dto.TossCancelResult;
 import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
@@ -54,7 +56,7 @@ public class PaymentCommandService {
     public PaymentResult confirmPayment(ConfirmPaymentCommand command) {
         // 1. orderId로 결제 조회
         Payment payment = paymentRepository.findByOrderId(command.orderId())
-            .orElseThrow(() -> new IllegalArgumentException("결제를 찾을 수 없습니다."));
+            .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         // 2. 이미 승인된 결제면 기존 결과 반환 (멱등성)
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
@@ -63,7 +65,7 @@ public class PaymentCommandService {
 
         // 3. 금액 위변조 검증
         if (!payment.getFinalAmount().equals(command.amount())) {
-            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+            throw new PaymentException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
         // 4. 토스 승인 요청
@@ -78,7 +80,7 @@ public class PaymentCommandService {
             || !command.orderId().equals(result.orderId())
             || !command.amount().equals(result.totalAmount())
             || !"DONE".equals(result.status())) {
-            throw new IllegalStateException("토스 승인 응답 검증에 실패했습니다.");
+            throw new PaymentException(PaymentErrorCode.PAYMENT_CONFIRM_FAILED);
         }
 
         // 5. 결제 상태 변경
@@ -92,17 +94,14 @@ public class PaymentCommandService {
     public PaymentResult refundPayment(RefundPaymentCommand command) {
         // 1. 결제 조회
         Payment payment = paymentRepository.findById(command.paymentId())
-            .orElseThrow(() -> new IllegalArgumentException("결제를 찾을 수 없습니다."));
+            .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         // 2. 본인 확인
         if (!payment.getUserId().equals(command.userId())) {
-            throw new IllegalArgumentException("본인의 결제만 환불할 수 있습니다.");
+            throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
         }
 
-        // 3. 환불 가능 상태 확인
-        if (payment.getStatus() != PaymentStatus.SUCCESS) {
-            throw new IllegalStateException("승인된 결제만 환불할 수 있습니다.");
-        }
+        // 3. 환불 가능 상태 확인은 Payment.refund()에서 가드로 처리됨
 
         // 4. 토스 취소 요청
         TossCancelResult cancelResult = tossPaymentsPort.cancel(
@@ -111,7 +110,7 @@ public class PaymentCommandService {
         );
 
         if (cancelResult == null) {
-            throw new IllegalStateException("토스 결제 취소 응답이 비어있습니다.");
+            throw new PaymentException(PaymentErrorCode.PAYMENT_CANCEL_FAILED);
         }
 
         // 5. 결제 상태 변경
