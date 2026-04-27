@@ -8,6 +8,7 @@ import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentRepository;
 import com.firstticket.paymentservice.domain.PaymentStatus;
 import com.firstticket.paymentservice.domain.service.TossPaymentsPort;
+import com.firstticket.paymentservice.domain.service.dto.TossCancelResult;
 import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -104,7 +105,14 @@ public class PaymentCommandService {
         }
 
         // 4. 토스 취소 요청
-        tossPaymentsPort.cancel(payment.getPaymentKey(), command.cancelReason());
+        TossCancelResult cancelResult = tossPaymentsPort.cancel(
+            payment.getPaymentKey(),
+            command.cancelReason()
+        );
+
+        if (cancelResult == null) {
+            throw new IllegalStateException("토스 결제 취소 응답이 비어있습니다.");
+        }
 
         // 5. 결제 상태 변경
         payment.refund();
