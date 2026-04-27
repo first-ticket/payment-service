@@ -1,0 +1,87 @@
+package com.firstticket.paymentservice.infrastructure.external;
+
+import com.firstticket.paymentservice.domain.service.TossPaymentsPort;
+import com.firstticket.paymentservice.domain.service.dto.TossCancelResult;
+import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
+import com.firstticket.paymentservice.infrastructure.external.dto.TossCancelRequest;
+import com.firstticket.paymentservice.infrastructure.external.dto.TossCancelResponse;
+import com.firstticket.paymentservice.infrastructure.external.dto.TossConfirmRequest;
+import com.firstticket.paymentservice.infrastructure.external.dto.TossConfirmResponse;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Base64;
+
+@Component
+@RequiredArgsConstructor
+public class TossPaymentsAdapter implements TossPaymentsPort {
+
+    private final RestTemplate restTemplate;
+
+    @Value("${toss.secret-key}")
+    private String secretKey;
+
+    @PostConstruct
+    void validateSecretKey() {
+        if (!StringUtils.hasText(secretKey)) {
+            throw new IllegalStateException("toss.secret-key 설정이 필요합니다.");
+        }
+    }
+
+    private static final String TOSS_CONFIRM_URL = "https://api.tosspayments.com/v1/payments/confirm";
+    private static final String TOSS_CANCEL_URL = "https://api.tosspayments.com/v1/payments/{paymentKey}/cancel";
+
+    @Override
+    public TossConfirmResult confirm(String paymentKey, String orderId, Integer amount) {
+        HttpHeaders headers = createHeaders();
+        TossConfirmRequest request = new TossConfirmRequest(paymentKey, orderId, amount);
+        HttpEntity<TossConfirmRequest> entity = new HttpEntity<>(request, headers);
+
+        TossConfirmResponse response = restTemplate.postForObject(
+            TOSS_CONFIRM_URL,
+            entity,
+            TossConfirmResponse.class
+        );
+
+        if (response == null) {
+            throw new IllegalStateException("토스 결제 승인 응답이 비어있습니다.");
+        }
+
+        return response.toResult();
+    }
+
+    @Override
+    public TossCancelResult cancel(String paymentKey, String cancelReason) {
+        HttpHeaders headers = createHeaders();
+        TossCancelRequest request = new TossCancelRequest(cancelReason);
+        HttpEntity<TossCancelRequest> entity = new HttpEntity<>(request, headers);
+
+        TossCancelResponse response = restTemplate.postForObject(
+            TOSS_CANCEL_URL,
+            entity,
+            TossCancelResponse.class,
+            paymentKey
+        );
+
+        if (response == null) {
+            throw new IllegalStateException("토스 결제 취소 응답이 비어있습니다.");
+        }
+
+        return response.toResult();
+    }
+
+    private HttpHeaders createHeaders() {
+        String encoded = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic " + encoded);
+        return headers;
+    }
+}
