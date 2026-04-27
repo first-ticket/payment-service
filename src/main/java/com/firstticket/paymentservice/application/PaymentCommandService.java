@@ -71,6 +71,13 @@ public class PaymentCommandService {
             command.amount()
         );
 
+        // 토스 응답 검증
+        if (!command.orderId().equals(result.orderId())
+            || !command.amount().equals(result.totalAmount())
+            || !"DONE".equals(result.status())) {
+            throw new IllegalStateException("토스 승인 응답 검증에 실패했습니다.");
+        }
+
         // 5. 결제 상태 변경
         payment.confirm(result.paymentKey(), result.approvedAt());
         paymentRepository.save(payment);

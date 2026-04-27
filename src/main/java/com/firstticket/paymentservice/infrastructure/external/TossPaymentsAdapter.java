@@ -7,12 +7,14 @@ import com.firstticket.paymentservice.infrastructure.external.dto.TossCancelRequ
 import com.firstticket.paymentservice.infrastructure.external.dto.TossCancelResponse;
 import com.firstticket.paymentservice.infrastructure.external.dto.TossConfirmRequest;
 import com.firstticket.paymentservice.infrastructure.external.dto.TossConfirmResponse;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Base64;
@@ -25,6 +27,13 @@ public class TossPaymentsAdapter implements TossPaymentsPort {
 
     @Value("${toss.secret-key}")
     private String secretKey;
+
+    @PostConstruct
+    void validateSecretKey() {
+        if (!StringUtils.hasText(secretKey)) {
+            throw new IllegalStateException("toss.secret-key 설정이 필요합니다.");
+        }
+    }
 
     private static final String TOSS_CONFIRM_URL = "https://api.tosspayments.com/v1/payments/confirm";
     private static final String TOSS_CANCEL_URL = "https://api.tosspayments.com/v1/payments/{paymentKey}/cancel";
