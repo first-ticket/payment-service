@@ -1,7 +1,6 @@
 package com.firstticket.paymentservice.domain;
 
 import com.firstticket.common.persistence.BaseEntity;
-import com.firstticket.common.persistence.BaseUserEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
