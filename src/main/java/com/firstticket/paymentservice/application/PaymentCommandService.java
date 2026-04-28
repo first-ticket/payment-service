@@ -89,6 +89,15 @@ public class PaymentCommandService {
         payment.confirm(result.paymentKey(), result.approvedAt());
         paymentRepository.save(payment);
 
+        // 6. 아웃박스 이벤트 저장
+        Events.publish(
+            UUID.randomUUID().toString(),
+            "PAYMENT",
+            payment.getId(),
+            "payment.completed",
+            PaymentCompletedPayload.from(payment)
+        );
+
         return PaymentResult.from(payment);
     }
 
@@ -118,16 +127,6 @@ public class PaymentCommandService {
         // 5. 결제 상태 변경
         payment.refund();
         paymentRepository.save(payment);
-
-        // 6. 아웃박스 이벤트 저장
-        Events.publish(
-            UUID.randomUUID().toString(),
-            "PAYMENT",
-            payment.getId(),
-            "payment.completed",
-            PaymentCompletedPayload.from(payment)
-        );
-
 
         return PaymentResult.from(payment);
     }
