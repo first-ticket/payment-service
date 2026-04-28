@@ -21,7 +21,7 @@ if (envFile.exists()) {
     envFile.eachLine { line ->
         if (line && !line.startsWith("#") && line.contains("=")) {
             def (key, value) = line.split("=", 2)
-            env[key.trim()] = value.trim()
+            env[key.trim()] = value.trim().replaceAll(/^['"]|['"]$/, '')
         }
     }
 }
@@ -30,13 +30,27 @@ def githubUser = env['GITHUB_USER'] ?: System.getenv('GITHUB_USER')
 def githubToken = env['GITHUB_TOKEN'] ?: System.getenv('GITHUB_TOKEN')
 
 if (!githubUser || !githubToken) {
-    throw new GradleException("GITHUB_USER/GITHUB_TOKEN이 필요합니다. .env 또는 환경변수로 설정하세요.")
+    throw new GradleException("GitHub 인증 정보가 없습니다: .env 파일 또는 환경 변수에 GITHUB_USER/GITHUB_TOKEN을 설정하세요.")
 }
 
 repositories {
     mavenCentral()
     maven {
         url = 'https://maven.pkg.github.com/first-ticket/common'
+        credentials {
+            username = githubUser
+            password = githubToken
+        }
+    }
+    maven {
+        url = 'https://maven.pkg.github.com/first-ticket/common-messaging'
+        credentials {
+            username = githubUser
+            password = githubToken
+        }
+    }
+    maven {
+        url = 'https://maven.pkg.github.com/first-ticket/common-jpa'
         credentials {
             username = githubUser
             password = githubToken
@@ -55,10 +69,13 @@ dependencyManagement {
 }
 
 dependencies {
-    implementation 'com.first-ticket:common:0.0.1-SNAPSHOT'
+    implementation 'com.first-ticket:common:0.0.3-SNAPSHOT'
+    implementation 'com.first-ticket:common-messaging:0.0.1-SNAPSHOT'
+    implementation 'com.first-ticket:common-jpa:0.0.1-SNAPSHOT'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.h2database:h2'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
