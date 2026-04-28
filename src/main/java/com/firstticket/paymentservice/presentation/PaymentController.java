@@ -30,7 +30,7 @@ public class PaymentController {
         PaymentResponse response = PaymentResponse.from(
             paymentCommandService.confirmPayment(request.toCommand())
         );
-        return ApiResponse.success(CommonSuccessCode.OK, response);
+        return ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRMED, response);
     }
     /**
      * 테스트용 엔드포인트 - Booking 서비스 연동 완료 후 제거 예정
@@ -58,7 +58,7 @@ public class PaymentController {
         PaymentResponse response = PaymentResponse.from(
             paymentQueryService.getPayment(paymentId, userId)
         );
-        return ApiResponse.success(CommonSuccessCode.OK, response);
+        return ApiResponse.success(PaymentSuccessCode.PAYMENT_FOUND, response);
     }
 
     // 본인 결제 목록 조회
@@ -69,7 +69,7 @@ public class PaymentController {
             .stream()
             .map(PaymentResponse::from)
             .toList();
-        return ApiResponse.success(CommonSuccessCode.OK, response);
+        return ApiResponse.success(PaymentSuccessCode.PAYMENT_LIST_FOUND, response);
     }
 
     // 환불
@@ -80,6 +80,6 @@ public class PaymentController {
         PaymentResponse response = PaymentResponse.from(
             paymentCommandService.refundPayment(request.toCommand(paymentId))
         );
-        return ApiResponse.success(CommonSuccessCode.OK, response);
+        return ApiResponse.success(PaymentSuccessCode.PAYMENT_REFUNDED, response);
     }
 }

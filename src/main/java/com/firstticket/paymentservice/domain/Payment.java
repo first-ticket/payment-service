@@ -1,7 +1,8 @@
 package com.firstticket.paymentservice.domain;
 
 import com.firstticket.common.persistence.BaseEntity;
-import com.firstticket.common.persistence.BaseUserEntity;
+import com.firstticket.paymentservice.domain.exception.PaymentErrorCode;
+import com.firstticket.paymentservice.domain.exception.PaymentException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -73,6 +74,9 @@ public class Payment extends BaseEntity {
 
     // 결제 승인
     public void confirm(String paymentKey, LocalDateTime approvedAt) {
+        if (this.status != PaymentStatus.PENDING && this.status != PaymentStatus.FAILED) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_INVALID_STATUS);
+        }
         this.paymentKey = paymentKey;
         this.status = PaymentStatus.SUCCESS;
         this.approvedAt = approvedAt;
@@ -81,6 +85,9 @@ public class Payment extends BaseEntity {
 
     // 결제 실패
     public void fail(int retryTtlSeconds) {
+        if (this.status != PaymentStatus.PENDING) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_INVALID_STATUS);
+        }
         this.status = PaymentStatus.FAILED;
         this.retryExpiredAt = LocalDateTime.now().plusSeconds(retryTtlSeconds);
         this.histories.add(PaymentHistory.create(this.id, PaymentStatus.FAILED, null, null));
@@ -88,6 +95,9 @@ public class Payment extends BaseEntity {
 
     // 환불
     public void refund() {
+        if (this.status != PaymentStatus.SUCCESS) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_INVALID_STATUS);
+        }
         this.status = PaymentStatus.REFUNDED;
         this.histories.add(PaymentHistory.create(this.id, PaymentStatus.REFUNDED, null, null));
     }

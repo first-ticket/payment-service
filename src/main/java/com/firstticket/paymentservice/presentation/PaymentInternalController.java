@@ -26,7 +26,6 @@ public class PaymentInternalController {
         PaymentResponse response = PaymentResponse.from(
             paymentCommandService.createPayment(request.toCommand())
         );
-        return ApiResponse.success(CommonSuccessCode.CREATED, response);
-        //결제 성공 코드 추후 구현
+        return ApiResponse.success(PaymentSuccessCode.PAYMENT_CREATED, response);
     }
 }
