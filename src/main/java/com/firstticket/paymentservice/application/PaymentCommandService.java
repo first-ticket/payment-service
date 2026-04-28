@@ -1,5 +1,6 @@
 package com.firstticket.paymentservice.application;
 
+import com.firstticket.common.messaging.event.Events;
 import com.firstticket.paymentservice.application.dto.command.ConfirmPaymentCommand;
 import com.firstticket.paymentservice.application.dto.command.CreatePaymentCommand;
 import com.firstticket.paymentservice.application.dto.command.RefundPaymentCommand;
@@ -12,6 +13,7 @@ import com.firstticket.paymentservice.domain.exception.PaymentException;
 import com.firstticket.paymentservice.domain.service.TossPaymentsPort;
 import com.firstticket.paymentservice.domain.service.dto.TossCancelResult;
 import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
+import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentCompletedPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -86,6 +88,15 @@ public class PaymentCommandService {
         // 5. 결제 상태 변경
         payment.confirm(result.paymentKey(), result.approvedAt());
         paymentRepository.save(payment);
+
+        // 6. 아웃박스 이벤트 저장
+        Events.publish(
+            UUID.randomUUID().toString(),
+            "PAYMENT",
+            payment.getId(),
+            "payment.completed",
+            PaymentCompletedPayload.from(payment)
+        );
 
         return PaymentResult.from(payment);
     }
