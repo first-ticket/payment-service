@@ -5,7 +5,7 @@ CREATE TABLE p_outbox
     aggregate_type VARCHAR(50)  NOT NULL,
     aggregate_id   UUID         NOT NULL,
     event_type     VARCHAR(50)  NOT NULL,
-    payload        JSON,
+    payload        JSON         NOT NULL,
     status         VARCHAR(20)  NOT NULL,
     published_at   TIMESTAMP,
     retry_count    INT          NOT NULL DEFAULT 0,
