@@ -6,11 +6,15 @@ import com.firstticket.common.web.AuthContext;
 import com.firstticket.paymentservice.application.PaymentCommandService;
 import com.firstticket.paymentservice.application.PaymentQueryService;
 import com.firstticket.paymentservice.application.dto.command.ConfirmPaymentCommand;
+import com.firstticket.paymentservice.domain.exception.PaymentErrorCode;
+import com.firstticket.paymentservice.domain.exception.PaymentException;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentRefundRequest;
 import com.firstticket.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -70,6 +74,22 @@ public class PaymentController {
             .stream()
             .map(PaymentResponse::from)
             .toList();
+        return ApiResponse.success(PaymentSuccessCode.PAYMENT_LIST_FOUND, response);
+    }
+
+    //전체 결제 목록 조회 (ADMIN)
+    @GetMapping("/admin")
+    public ResponseEntity<ApiResponse<Page<PaymentResponse>>> getAllPayments(
+        Pageable pageable) {
+
+        String role = AuthContext.getRole();
+        if (!"ADMIN".equals(role)) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
+        }
+
+        Page<PaymentResponse> response = paymentQueryService.getAllPayments(pageable)
+            .map(PaymentResponse::from);
+
         return ApiResponse.success(PaymentSuccessCode.PAYMENT_LIST_FOUND, response);
     }
 

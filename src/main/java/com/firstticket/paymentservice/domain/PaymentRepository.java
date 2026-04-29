@@ -1,5 +1,8 @@
 package com.firstticket.paymentservice.domain;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,4 +18,6 @@ public interface PaymentRepository {
     Optional<Payment> findByBookingId(UUID bookingId);
 
     List<Payment> findAllByUserId(UUID userId);
+
+    Page<Payment> findAll(Pageable pageable);
 }

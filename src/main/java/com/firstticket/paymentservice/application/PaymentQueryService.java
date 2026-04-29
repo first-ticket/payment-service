@@ -5,6 +5,8 @@ import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentRepository;
 import com.firstticket.paymentservice.domain.exception.PaymentErrorCode;
 import com.firstticket.paymentservice.domain.exception.PaymentException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,5 +38,11 @@ public class PaymentQueryService {
             .stream()
             .map(PaymentResult::from)
             .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PaymentResult> getAllPayments(Pageable pageable) {
+        return paymentRepository.findAll(pageable)
+            .map(PaymentResult::from);
     }
 }
