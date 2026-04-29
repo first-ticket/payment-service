@@ -7,13 +7,12 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 public record PaymentRefundRequest(
-    @NotNull UUID userId,
     @NotBlank String cancelReason
 ) {
-    public RefundPaymentCommand toCommand(UUID paymentId) {
+    public RefundPaymentCommand toCommand(UUID paymentId, UUID userId) {
         return new RefundPaymentCommand(
             paymentId,
-            this.userId,
+            userId,
             this.cancelReason
         );
     }

@@ -54,7 +54,7 @@ public class PaymentController {
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(
         @PathVariable UUID paymentId,
-        @RequestParam UUID userId) {
+        @RequestHeader("X-User-Id") UUID userId) {
         PaymentResponse response = PaymentResponse.from(
             paymentQueryService.getPayment(paymentId, userId)
         );
@@ -64,7 +64,7 @@ public class PaymentController {
     // 본인 결제 목록 조회
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<List<PaymentResponse>>> getMyPayments(
-        @RequestParam UUID userId) {
+        @RequestHeader("X-User-Id") UUID userId) {
         List<PaymentResponse> response = paymentQueryService.getMyPayments(userId)
             .stream()
             .map(PaymentResponse::from)
@@ -76,9 +76,10 @@ public class PaymentController {
     @PostMapping("/{paymentId}/refund")
     public ResponseEntity<ApiResponse<PaymentResponse>> refundPayment(
         @PathVariable UUID paymentId,
+        @RequestHeader("X-User-Id") UUID userId,
         @RequestBody @Valid PaymentRefundRequest request) {
         PaymentResponse response = PaymentResponse.from(
-            paymentCommandService.refundPayment(request.toCommand(paymentId))
+            paymentCommandService.refundPayment(request.toCommand(paymentId, userId))
         );
         return ApiResponse.success(PaymentSuccessCode.PAYMENT_REFUNDED, response);
     }
