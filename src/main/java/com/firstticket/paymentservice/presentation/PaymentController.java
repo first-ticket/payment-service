@@ -3,6 +3,7 @@ package com.firstticket.paymentservice.presentation;
 import com.firstticket.common.response.ApiResponse;
 import com.firstticket.common.response.CommonSuccessCode;
 import com.firstticket.common.web.AuthContext;
+import com.firstticket.common.web.UserRole;
 import com.firstticket.paymentservice.application.PaymentCommandService;
 import com.firstticket.paymentservice.application.PaymentQueryService;
 import com.firstticket.paymentservice.application.dto.command.ConfirmPaymentCommand;
@@ -82,8 +83,8 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<Page<PaymentResponse>>> getAllPayments(
         Pageable pageable) {
 
-        String role = AuthContext.getRole();
-        if (!"ADMIN".equals(role)) {
+        UserRole role = AuthContext.getRole();
+        if (UserRole.ADMIN != role) {
             throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
         }
 
