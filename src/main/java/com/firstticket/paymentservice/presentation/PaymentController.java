@@ -2,6 +2,7 @@ package com.firstticket.paymentservice.presentation;
 
 import com.firstticket.common.response.ApiResponse;
 import com.firstticket.common.response.CommonSuccessCode;
+import com.firstticket.common.web.AuthContext;
 import com.firstticket.paymentservice.application.PaymentCommandService;
 import com.firstticket.paymentservice.application.PaymentQueryService;
 import com.firstticket.paymentservice.application.dto.command.ConfirmPaymentCommand;
@@ -53,8 +54,8 @@ public class PaymentController {
     // 결제 상세 조회
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(
-        @PathVariable UUID paymentId,
-        @RequestHeader("X-User-Id") UUID userId) {
+        @PathVariable UUID paymentId) {
+        UUID userId = AuthContext.getUserId();
         PaymentResponse response = PaymentResponse.from(
             paymentQueryService.getPayment(paymentId, userId)
         );
@@ -63,8 +64,8 @@ public class PaymentController {
 
     // 본인 결제 목록 조회
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getMyPayments(
-        @RequestHeader("X-User-Id") UUID userId) {
+    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getMyPayments() {
+        UUID userId = AuthContext.getUserId();
         List<PaymentResponse> response = paymentQueryService.getMyPayments(userId)
             .stream()
             .map(PaymentResponse::from)
@@ -76,8 +77,8 @@ public class PaymentController {
     @PostMapping("/{paymentId}/refund")
     public ResponseEntity<ApiResponse<PaymentResponse>> refundPayment(
         @PathVariable UUID paymentId,
-        @RequestHeader("X-User-Id") UUID userId,
         @RequestBody @Valid PaymentRefundRequest request) {
+        UUID userId = AuthContext.getUserId();
         PaymentResponse response = PaymentResponse.from(
             paymentCommandService.refundPayment(request.toCommand(paymentId, userId))
         );
