@@ -8,14 +8,17 @@ import com.firstticket.paymentservice.application.dto.result.PaymentResult;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentCreateRequest;
 import com.firstticket.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Validated
 @ConditionalOnProperty(
     prefix = "feature.internal-payments",
     name = "enabled",
@@ -45,7 +48,7 @@ public class PaymentInternalController {
     public ResponseEntity<String> getPaymentPage(
         @RequestParam UUID bookingId,
         @RequestParam UUID userId,
-        @RequestParam Integer amount) {
+        @Positive @RequestParam Integer amount) {
 
         PaymentResult result = paymentCommandService.createPayment(
             new CreatePaymentCommand(bookingId, userId, amount)
@@ -85,7 +88,7 @@ public class PaymentInternalController {
     @GetMapping("/payment-page")
     public ResponseEntity<String> getPaymentPage(
         @RequestParam String orderId,
-        @RequestParam Integer amount) {
+        @Positive @RequestParam Integer amount) {
 
         String html = """
             <!DOCTYPE html>
