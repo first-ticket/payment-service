@@ -3,6 +3,8 @@ package com.firstticket.paymentservice.infrastructure.persistence;
 import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -35,4 +37,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public List<Payment> findAllByUserId(UUID userId) {return paymentJpaRepository.findAllByUserId(userId);}
+
+    @Override
+    public Page<Payment> findAll(Pageable pageable) {return paymentJpaRepository.findAll(pageable);}
 }

@@ -2,14 +2,20 @@ package com.firstticket.paymentservice.presentation;
 
 import com.firstticket.common.response.ApiResponse;
 import com.firstticket.common.response.CommonSuccessCode;
+import com.firstticket.common.web.AuthContext;
+import com.firstticket.common.web.UserRole;
 import com.firstticket.paymentservice.application.PaymentCommandService;
 import com.firstticket.paymentservice.application.PaymentQueryService;
 import com.firstticket.paymentservice.application.dto.command.ConfirmPaymentCommand;
+import com.firstticket.paymentservice.domain.exception.PaymentErrorCode;
+import com.firstticket.paymentservice.domain.exception.PaymentException;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentRefundRequest;
 import com.firstticket.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,8 +59,8 @@ public class PaymentController {
     // 결제 상세 조회
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(
-        @PathVariable UUID paymentId,
-        @RequestHeader("X-User-Id") UUID userId) {
+        @PathVariable UUID paymentId) {
+        UUID userId = AuthContext.getUserId();
         PaymentResponse response = PaymentResponse.from(
             paymentQueryService.getPayment(paymentId, userId)
         );
@@ -63,8 +69,8 @@ public class PaymentController {
 
     // 본인 결제 목록 조회
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getMyPayments(
-        @RequestHeader("X-User-Id") UUID userId) {
+    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getMyPayments() {
+        UUID userId = AuthContext.getUserId();
         List<PaymentResponse> response = paymentQueryService.getMyPayments(userId)
             .stream()
             .map(PaymentResponse::from)
@@ -72,12 +78,28 @@ public class PaymentController {
         return ApiResponse.success(PaymentSuccessCode.PAYMENT_LIST_FOUND, response);
     }
 
+    //전체 결제 목록 조회 (ADMIN)
+    @GetMapping("/admin")
+    public ResponseEntity<ApiResponse<Page<PaymentResponse>>> getAllPayments(
+        Pageable pageable) {
+
+        UserRole role = AuthContext.getRole();
+        if (UserRole.ADMIN != role) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
+        }
+
+        Page<PaymentResponse> response = paymentQueryService.getAllPayments(pageable)
+            .map(PaymentResponse::from);
+
+        return ApiResponse.success(PaymentSuccessCode.PAYMENT_LIST_FOUND, response);
+    }
+
     // 환불
     @PostMapping("/{paymentId}/refund")
     public ResponseEntity<ApiResponse<PaymentResponse>> refundPayment(
         @PathVariable UUID paymentId,
-        @RequestHeader("X-User-Id") UUID userId,
         @RequestBody @Valid PaymentRefundRequest request) {
+        UUID userId = AuthContext.getUserId();
         PaymentResponse response = PaymentResponse.from(
             paymentCommandService.refundPayment(request.toCommand(paymentId, userId))
         );
