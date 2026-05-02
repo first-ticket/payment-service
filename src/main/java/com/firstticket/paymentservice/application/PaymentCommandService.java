@@ -97,7 +97,7 @@ public class PaymentCommandService {
                 PaymentFailedPayload.from(payment, "토스 결제 승인 실패")
             );
 
-            throw new PaymentException(PaymentErrorCode.PAYMENT_CONFIRM_FAILED);
+            return PaymentResult.from(payment); // status가 FAILED인 결과 반환
         }
 
         // 5. 결제 상태 변경
