@@ -7,6 +7,8 @@ import com.firstticket.common.web.UserRole;
 import com.firstticket.paymentservice.application.PaymentCommandService;
 import com.firstticket.paymentservice.application.PaymentQueryService;
 import com.firstticket.paymentservice.application.dto.command.ConfirmPaymentCommand;
+import com.firstticket.paymentservice.application.dto.result.PaymentResult;
+import com.firstticket.paymentservice.domain.PaymentStatus;
 import com.firstticket.paymentservice.domain.exception.PaymentErrorCode;
 import com.firstticket.paymentservice.domain.exception.PaymentException;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentConfirmRequest;
@@ -33,11 +35,17 @@ public class PaymentController {
     @PostMapping("/confirm")
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(
         @RequestBody @Valid PaymentConfirmRequest request) {
-        PaymentResponse response = PaymentResponse.from(
-            paymentCommandService.confirmPayment(request.toCommand())
-        );
-        return ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRMED, response);
+
+        PaymentResult result = paymentCommandService.confirmPayment(request.toCommand());
+
+        // FAILED면 실패 응답 반환
+        if (result.status() == PaymentStatus.FAILED) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_CONFIRM_FAILED);
+        }
+
+        return ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRMED, PaymentResponse.from(result));
     }
+
     /**
      * 테스트용 엔드포인트 - Booking 서비스 연동 완료 후 제거 예정
      * @deprecated 테스트 완료 후 제거 예정
