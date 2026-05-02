@@ -14,6 +14,7 @@ import com.firstticket.paymentservice.domain.service.TossPaymentsPort;
 import com.firstticket.paymentservice.domain.service.dto.TossCancelResult;
 import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
 import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentCompletedPayload;
+import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentFailedPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -82,6 +83,20 @@ public class PaymentCommandService {
             || !command.orderId().equals(result.orderId())
             || !command.amount().equals(result.totalAmount())
             || !"DONE".equals(result.status())) {
+
+            // 결제 실패 처리
+            payment.fail(300);
+            paymentRepository.save(payment);
+
+            // 실패 이벤트 발행
+            Events.publish(
+                UUID.randomUUID().toString(),
+                "PAYMENT",
+                payment.getId(),
+                "payment.failed",
+                PaymentFailedPayload.from(payment, "토스 결제 승인 실패")
+            );
+
             throw new PaymentException(PaymentErrorCode.PAYMENT_CONFIRM_FAILED);
         }
 
