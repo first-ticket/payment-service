@@ -106,8 +106,8 @@ public class PaymentInternalController {
                   orderId: "%s",
                   orderName: "First Ticket 예매",
                   customerName: "김토스",
-                  successUrl: "http://localhost:8085/api/v1/payments/confirm-redirect",
-                  failUrl: "http://localhost:8085/fail"
+                  successUrl: "http://localhost:8080/api/v1/payments/confirm-redirect",
+                  failUrl: "http://localhost:8080/fail"
                 });
               </script>
             </body>
