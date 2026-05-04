@@ -66,6 +66,11 @@ public class PaymentCommandService {
             return PaymentResult.from(payment);
         }
 
+        // 최종 실패된 결제는 재시도 불가
+        if (payment.getStatus() == PaymentStatus.FINAL_FAILED) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_CONFIRM_FAILED);
+        }
+
         // 3. 금액 위변조 검증
         if (!payment.getFinalAmount().equals(command.amount())) {
             throw new PaymentException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
@@ -78,7 +83,7 @@ public class PaymentCommandService {
             command.amount()
         );
 
-// 토스 응답 검증
+        // 토스 응답 검증
         if (!command.paymentKey().equals(result.paymentKey())
             || !command.orderId().equals(result.orderId())
             || !command.amount().equals(result.totalAmount())
@@ -89,7 +94,9 @@ public class PaymentCommandService {
                 payment.fail(300);
                 paymentRepository.save(payment);
             } else if (payment.getStatus() == PaymentStatus.FAILED && payment.isFinalFailed()) {
-                // 선점 시간 만료 후 재시도 실패 → 최종 실패 이벤트 발행
+                // 선점 시간 만료 후 재시도 실패 → 최종 실패 상태로 변경 + 이벤트 발행
+                payment.finalFail();
+                paymentRepository.save(payment);
                 Events.publish(
                     UUID.randomUUID().toString(),
                     "PAYMENT",
