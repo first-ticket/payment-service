@@ -78,17 +78,18 @@ public class PaymentCommandService {
             command.amount()
         );
 
-        // 토스 응답 검증
+// 토스 응답 검증
         if (!command.paymentKey().equals(result.paymentKey())
             || !command.orderId().equals(result.orderId())
             || !command.amount().equals(result.totalAmount())
             || !"DONE".equals(result.status())) {
 
-            payment.fail(300);
-            paymentRepository.save(payment);
-
-            // 선점 시간 만료된 경우에만 이벤트 발행
-            if (payment.isFinalFailed()) {
+            if (payment.getStatus() == PaymentStatus.PENDING) {
+                // 첫 번째 실패 → FAILED 상태로 변경 (재시도 가능)
+                payment.fail(300);
+                paymentRepository.save(payment);
+            } else if (payment.getStatus() == PaymentStatus.FAILED && payment.isFinalFailed()) {
+                // 선점 시간 만료 후 재시도 실패 → 최종 실패 이벤트 발행
                 Events.publish(
                     UUID.randomUUID().toString(),
                     "PAYMENT",
@@ -98,7 +99,7 @@ public class PaymentCommandService {
                 );
             }
 
-            return PaymentResult.from(payment); // status가 FAILED인 결과 반환
+            return PaymentResult.from(payment);
         }
 
         // 5. 결제 상태 변경
