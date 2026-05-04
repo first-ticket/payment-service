@@ -104,7 +104,7 @@ public class Payment extends BaseEntity {
 
     // 최종 결제 실패 (선점 시간 만료)
     public void finalFail() {
-        if (this.status != PaymentStatus.FAILED) {
+        if (!isFinalFailed()) {  // 선점 시간 만료 + FAILED 상태 동시 검증
             throw new PaymentException(PaymentErrorCode.PAYMENT_INVALID_STATUS);
         }
         this.status = PaymentStatus.FINAL_FAILED;
