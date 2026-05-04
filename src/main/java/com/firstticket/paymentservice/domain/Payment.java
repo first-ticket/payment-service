@@ -101,4 +101,21 @@ public class Payment extends BaseEntity {
         this.status = PaymentStatus.REFUNDED;
         this.histories.add(PaymentHistory.create(this.id, PaymentStatus.REFUNDED, null, null));
     }
+
+    // 최종 결제 실패 (선점 시간 만료)
+    public void finalFail() {
+        if (!isFinalFailed()) {  // 선점 시간 만료 + FAILED 상태 동시 검증
+            throw new PaymentException(PaymentErrorCode.PAYMENT_INVALID_STATUS);
+        }
+        this.status = PaymentStatus.FINAL_FAILED;
+        this.histories.add(PaymentHistory.create(this.id, PaymentStatus.FINAL_FAILED, null, null));
+    }
+
+    // 최종 결제 실패 여부 확인
+    public boolean isFinalFailed() {
+        LocalDateTime now = LocalDateTime.now();
+        return this.status == PaymentStatus.FAILED
+            && this.retryExpiredAt != null
+            && !now.isBefore(this.retryExpiredAt);
+    }
 }
