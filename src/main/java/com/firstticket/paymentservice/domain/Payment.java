@@ -101,4 +101,9 @@ public class Payment extends BaseEntity {
         this.status = PaymentStatus.REFUNDED;
         this.histories.add(PaymentHistory.create(this.id, PaymentStatus.REFUNDED, null, null));
     }
+
+    //최종 결제 실패
+    public boolean isFinalFailed() {
+        return retryExpiredAt != null && LocalDateTime.now().isAfter(retryExpiredAt);
+    }
 }

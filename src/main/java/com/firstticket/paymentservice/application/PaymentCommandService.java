@@ -84,18 +84,19 @@ public class PaymentCommandService {
             || !command.amount().equals(result.totalAmount())
             || !"DONE".equals(result.status())) {
 
-            // 결제 실패 처리
             payment.fail(300);
             paymentRepository.save(payment);
 
-            // 실패 이벤트 발행
-            Events.publish(
-                UUID.randomUUID().toString(),
-                "PAYMENT",
-                payment.getId(),
-                "payment.failed",
-                PaymentFailedPayload.from(payment, "토스 결제 승인 실패")
-            );
+            // 선점 시간 만료된 경우에만 이벤트 발행
+            if (payment.isFinalFailed()) {
+                Events.publish(
+                    UUID.randomUUID().toString(),
+                    "PAYMENT",
+                    payment.getId(),
+                    "payment.failed",
+                    PaymentFailedPayload.from(payment, "토스 결제 승인 실패")
+                );
+            }
 
             return PaymentResult.from(payment); // status가 FAILED인 결과 반환
         }

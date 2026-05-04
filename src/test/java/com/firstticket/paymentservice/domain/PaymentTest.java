@@ -76,4 +76,20 @@ class PaymentTest {
         payment.fail(300);
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
     }
+
+    @Test
+    @DisplayName("선점 시간 만료 전에는 isFinalFailed false")
+    void is_not_final_failed_within_retry_time() {
+        Payment payment = createPayment();
+        payment.fail(300); // 300초 후 만료
+        assertThat(payment.isFinalFailed()).isFalse();
+    }
+
+    @Test
+    @DisplayName("선점 시간 만료 후에는 isFinalFailed true")
+    void is_final_failed_after_retry_expired() {
+        Payment payment = createPayment();
+        payment.fail(-1); // 이미 만료 (-1초)
+        assertThat(payment.isFinalFailed()).isTrue();
+    }
 }
