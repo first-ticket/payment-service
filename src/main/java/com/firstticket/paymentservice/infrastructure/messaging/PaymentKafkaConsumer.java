@@ -35,6 +35,7 @@ public class PaymentKafkaConsumer {
             );
         } catch (Exception e) {
             log.error("booking.payment.refund 처리 실패 - {}", e.getMessage(), e);
+            throw new RuntimeException(e); // 예외 재전파 → Spring Kafka 재시도
         }
     }
 }
