@@ -40,6 +40,7 @@ public class PaymentInternalController {
         return ApiResponse.success(PaymentSuccessCode.PAYMENT_CREATED, response);
     }
 
+    /*
     //결제 생성을 payment-service에서 임의로 호출하는 테스트과정
     //http://localhost:8085/internal/v1/payments/payment-page?bookingId=xxx&userId=xxx&amount=xxx 로
     //bookingId 와 userId는 임시로 생성해서 사용 (bookingId는 중복 불가)
@@ -81,10 +82,10 @@ public class PaymentInternalController {
             .contentType(MediaType.TEXT_HTML)
             .body(html);
     }
+     */
 
     //Booking Service 연동 후 결제 생성 API 호출하면 orderId 반환 후
     //http://localhost:8085/internal/v1/payments/payment-page?orderId=xxx&amount=50000 로 토스 결제창 연동
-    /*
     @GetMapping("/payment-page")
     public ResponseEntity<String> getPaymentPage(
         @RequestParam String orderId,
@@ -105,8 +106,8 @@ public class PaymentInternalController {
                   orderId: "%s",
                   orderName: "First Ticket 예매",
                   customerName: "김토스",
-                  successUrl: "http://localhost:8085/api/v1/payments/confirm-redirect",
-                  failUrl: "http://localhost:8085/fail"
+                  successUrl: "http://localhost:8080/api/v1/payments/confirm-redirect",
+                  failUrl: "http://localhost:8080/fail"
                 });
               </script>
             </body>
@@ -117,5 +118,4 @@ public class PaymentInternalController {
             .contentType(MediaType.TEXT_HTML)
             .body(html);
     }
-     */
 }
