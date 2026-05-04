@@ -104,6 +104,8 @@ public class Payment extends BaseEntity {
 
     //최종 결제 실패
     public boolean isFinalFailed() {
-        return retryExpiredAt != null && LocalDateTime.now().isAfter(retryExpiredAt);
-    }
-}
+        LocalDateTime now = LocalDateTime.now();
+        return this.status == PaymentStatus.FAILED
+            && this.retryExpiredAt != null
+            && !now.isBefore(this.retryExpiredAt);
+    }}
