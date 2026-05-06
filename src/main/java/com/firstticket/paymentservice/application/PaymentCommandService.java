@@ -16,14 +16,14 @@ import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
 import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentCompletedPayload;
 import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentFailedPayload;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-import static org.hibernate.query.sqm.tree.SqmNode.log;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentCommandService {
