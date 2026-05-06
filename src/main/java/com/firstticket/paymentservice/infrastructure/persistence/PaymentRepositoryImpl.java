@@ -2,11 +2,13 @@ package com.firstticket.paymentservice.infrastructure.persistence;
 
 import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentRepository;
+import com.firstticket.paymentservice.domain.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,4 +42,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public Page<Payment> findAll(Pageable pageable) {return paymentJpaRepository.findAll(pageable);}
+
+    @Override
+    public List<Payment> findAllByStatusAndRequestedAtBefore(PaymentStatus status, LocalDateTime expiredAt) {return paymentJpaRepository.findAllByStatusAndRequestedAtBefore(status, expiredAt);}
 }
