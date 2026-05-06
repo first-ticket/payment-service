@@ -6,6 +6,7 @@ import com.firstticket.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,12 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentInternalController {
 
     private final PaymentCommandService paymentCommandService;
+
+    @Value("${payment.success-url}")
+    private String successUrl;
+
+    @Value("${payment.fail-url}")
+    private String failUrl;
 
     @PostMapping
     public ResponseEntity<PaymentResponse> createPayment(
@@ -100,13 +107,13 @@ public class PaymentInternalController {
                   orderId: "%s",
                   orderName: "First Ticket 예매",
                   customerName: "김토스",
-                  successUrl: "http://localhost:8084/api/v1/payments/confirm-redirect",
-                  failUrl: "http://localhost:8084/fail"
+                  successUrl: "%s",
+                  failUrl: "%s"
                 });
               </script>
             </body>
             </html>
-            """.formatted(amount, orderId);
+            """.formatted(amount, orderId, successUrl, failUrl);
 
         return ResponseEntity.ok()
             .contentType(MediaType.TEXT_HTML)
