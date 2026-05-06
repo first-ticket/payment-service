@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentCommandService {
@@ -131,12 +133,16 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findById(command.paymentId())
             .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        // 2. 본인 확인
+        // 2. 이미 환불된 결제면 그냥 반환 (멱등성)
+        if (payment.getStatus() == PaymentStatus.REFUNDED) {
+            log.info("이미 환불된 결제 - paymentId: " + command.paymentId());
+            return PaymentResult.from(payment);
+        }
+
+        // 3. 본인 확인
         if (!payment.getUserId().equals(command.userId())) {
             throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
         }
-
-        // 3. 환불 가능 상태 확인은 Payment.refund()에서 가드로 처리됨
 
         // 4. 토스 취소 요청
         TossCancelResult cancelResult = tossPaymentsPort.cancel(
