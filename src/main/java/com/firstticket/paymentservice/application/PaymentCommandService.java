@@ -16,12 +16,14 @@ import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
 import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentCompletedPayload;
 import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentFailedPayload;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentCommandService {
@@ -136,7 +138,11 @@ public class PaymentCommandService {
             throw new PaymentException(PaymentErrorCode.PAYMENT_FORBIDDEN);
         }
 
-        // 3. 환불 가능 상태 확인은 Payment.refund()에서 가드로 처리됨
+        // 3. 이미 환불된 결제면 그냥 반환 (멱등성)
+        if (payment.getStatus() == PaymentStatus.REFUNDED) {
+            log.info("이미 환불된 결제 - paymentId: {}", command.paymentId());
+            return PaymentResult.from(payment);
+        }
 
         // 4. 토스 취소 요청
         TossCancelResult cancelResult = tossPaymentsPort.cancel(

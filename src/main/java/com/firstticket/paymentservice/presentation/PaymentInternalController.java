@@ -1,22 +1,17 @@
 package com.firstticket.paymentservice.presentation;
 
-import com.firstticket.common.response.ApiResponse;
-import com.firstticket.common.response.CommonSuccessCode;
 import com.firstticket.paymentservice.application.PaymentCommandService;
-import com.firstticket.paymentservice.application.dto.command.CreatePaymentCommand;
-import com.firstticket.paymentservice.application.dto.result.PaymentResult;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentCreateRequest;
 import com.firstticket.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @Validated
 @ConditionalOnProperty(
@@ -31,13 +26,19 @@ public class PaymentInternalController {
 
     private final PaymentCommandService paymentCommandService;
 
+    @Value("${payment.success-url}")
+    private String successUrl;
+
+    @Value("${payment.fail-url}")
+    private String failUrl;
+
     @PostMapping
-    public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
+    public ResponseEntity<PaymentResponse> createPayment(
         @RequestBody @Valid PaymentCreateRequest request) {
         PaymentResponse response = PaymentResponse.from(
             paymentCommandService.createPayment(request.toCommand())
         );
-        return ApiResponse.success(PaymentSuccessCode.PAYMENT_CREATED, response);
+        return ResponseEntity.ok(response);
     }
 
     /*
@@ -106,13 +107,13 @@ public class PaymentInternalController {
                   orderId: "%s",
                   orderName: "First Ticket 예매",
                   customerName: "김토스",
-                  successUrl: "http://localhost:8080/api/v1/payments/confirm-redirect",
-                  failUrl: "http://localhost:8080/fail"
+                  successUrl: "%s",
+                  failUrl: "%s"
                 });
               </script>
             </body>
             </html>
-            """.formatted(amount, orderId);
+            """.formatted(amount, orderId, successUrl, failUrl);
 
         return ResponseEntity.ok()
             .contentType(MediaType.TEXT_HTML)

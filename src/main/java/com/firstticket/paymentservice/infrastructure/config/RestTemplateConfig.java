@@ -1,4 +1,4 @@
-package com.firstticket.paymentservice.config;
+package com.firstticket.paymentservice.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
