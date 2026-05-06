@@ -1,10 +1,6 @@
 package com.firstticket.paymentservice.presentation;
 
-import com.firstticket.common.response.ApiResponse;
-import com.firstticket.common.response.CommonSuccessCode;
 import com.firstticket.paymentservice.application.PaymentCommandService;
-import com.firstticket.paymentservice.application.dto.command.CreatePaymentCommand;
-import com.firstticket.paymentservice.application.dto.result.PaymentResult;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentCreateRequest;
 import com.firstticket.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
@@ -15,8 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @Validated
 @ConditionalOnProperty(
@@ -32,12 +26,12 @@ public class PaymentInternalController {
     private final PaymentCommandService paymentCommandService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
+    public ResponseEntity<PaymentResponse> createPayment(
         @RequestBody @Valid PaymentCreateRequest request) {
         PaymentResponse response = PaymentResponse.from(
             paymentCommandService.createPayment(request.toCommand())
         );
-        return ApiResponse.success(PaymentSuccessCode.PAYMENT_CREATED, response);
+        return ResponseEntity.ok(response);
     }
 
     /*
