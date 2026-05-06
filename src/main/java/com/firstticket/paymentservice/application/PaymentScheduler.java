@@ -31,18 +31,22 @@ public class PaymentScheduler {
             .findAllByStatusAndRequestedAtBefore(PaymentStatus.PENDING, expiredAt);
 
         for (Payment payment : expiredPayments) {
-            log.info("결제 만료 처리 - paymentId: {}", payment.getId());
-            payment.fail(0);
-            payment.finalFail();
-            paymentRepository.save(payment);
+            try {
+                log.info("결제 만료 처리 - paymentId: {}", payment.getId());
+                payment.fail(0);
+                payment.finalFail();
+                paymentRepository.save(payment);
 
-            Events.publish(
-                UUID.randomUUID().toString(),
-                "PAYMENT",
-                payment.getId(),
-                "payment.failed",
-                PaymentFailedPayload.from(payment, "결제 시간 만료")
-            );
+                Events.publish(
+                    UUID.randomUUID().toString(),
+                    "PAYMENT",
+                    payment.getId(),
+                    "payment.failed",
+                    PaymentFailedPayload.from(payment, "결제 시간 만료")
+                );
+            } catch (Exception e) {
+                log.error("결제 만료 처리 실패 - paymentId: {}", payment.getId(), e);
+            }
         }
 
         if (!expiredPayments.isEmpty()) {
