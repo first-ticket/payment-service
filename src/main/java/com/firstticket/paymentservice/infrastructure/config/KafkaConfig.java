@@ -1,8 +1,10 @@
 package com.firstticket.paymentservice.infrastructure.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -30,5 +32,29 @@ public class KafkaConfig {
         );
 
         return errorHandler;
+    }
+    
+    @Bean
+    public NewTopic bookingRefundDltTopic() {
+        return TopicBuilder.name("booking.refund.request.DLT")
+            .partitions(3)
+            .replicas(1)
+            .build();
+    }
+
+    @Bean
+    public NewTopic bookingCancelDltTopic() {
+        return TopicBuilder.name("booking.cancel.request.DLT")
+            .partitions(3)
+            .replicas(1)
+            .build();
+    }
+
+    @Bean
+    public NewTopic bookingCompensationDltTopic() {
+        return TopicBuilder.name("booking.payment.compensation.DLT")
+            .partitions(3)
+            .replicas(1)
+            .build();
     }
 }

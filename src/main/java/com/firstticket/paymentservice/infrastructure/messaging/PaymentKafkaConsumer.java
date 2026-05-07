@@ -35,8 +35,11 @@ public class PaymentKafkaConsumer {
                     payload.reason()
                 )
             );
+        } catch (RuntimeException e) {
+            log.error("처리 실패 - {}", e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
-            log.error("booking.refund.request 처리 실패 - {}", e.getMessage(), e);
+            log.error("처리 실패 - {}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -57,8 +60,11 @@ public class PaymentKafkaConsumer {
                     payload.reason()
                 )
             );
+        } catch (RuntimeException e) {
+            log.error("처리 실패 - {}", e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
-            log.error("booking.cancel.request 처리 실패 - {}", e.getMessage(), e);
+            log.error("처리 실패 - {}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -79,8 +85,11 @@ public class PaymentKafkaConsumer {
                     payload.reason()
                 )
             );
+        } catch (RuntimeException e) {
+            log.error("처리 실패 - {}", e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
-            log.error("booking.payment.compensation 처리 실패 - {}", e.getMessage(), e);
+            log.error("처리 실패 - {}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
