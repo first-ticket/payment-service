@@ -14,7 +14,7 @@ ARG GITHUB_TOKEN
 ENV GITHUB_USER=$GITHUB_USER
 ENV GITHUB_TOKEN=$GITHUB_TOKEN
 
-RUN ./gradlew dependencies --no-daemon || true
+RUN ./gradlew dependencies --no-daemon
 
 COPY src src
 RUN ./gradlew clean bootJar --no-daemon -x test
