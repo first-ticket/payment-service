@@ -159,7 +159,7 @@ public class PaymentCommandService {
         payment.refund();
         paymentRepository.save(payment);
 
-        // 6. 환불 완료 이벤트 발행
+        // 6. 환불 완료 이벤트
         Events.publish(
             UUID.randomUUID().toString(),
             "PAYMENT",
