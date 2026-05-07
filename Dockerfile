@@ -10,9 +10,11 @@ RUN chmod +x gradlew
 
 # GitHub Packages 인증 후 의존성 다운로드
 ARG GITHUB_USER
-ARG GITHUB_TOKEN
-ENV GITHUB_USER=$GITHUB_USER
-ENV GITHUB_TOKEN=$GITHUB_TOKEN
+
+RUN --mount=type=secret,id=github_token \
+    GITHUB_TOKEN="$(cat /run/secrets/github_token)" \
+    GITHUB_USER=$GITHUB_USER \
+    ./gradlew dependencies --no-daemon || true
 
 RUN ./gradlew dependencies --no-daemon
 

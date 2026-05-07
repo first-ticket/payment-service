@@ -1,4 +1,9 @@
 version: '3.9'
+
+secrets:
+    github_token:
+        environment: GITHUB_TOKEN
+
 services:
     payment-service:
         build:
@@ -6,7 +11,8 @@ services:
             dockerfile: Dockerfile
             args:
                 GITHUB_USER: ${GITHUB_USER}
-                GITHUB_TOKEN: ${GITHUB_TOKEN}
+            secrets:
+                - github_token
         image: payment-service:latest
         container_name: payment-service
         ports:
@@ -22,6 +28,8 @@ services:
             DB_PASSWORD: ${DB_PASSWORD}
             PAYMENT_SUCCESS_URL: ${PAYMENT_SUCCESS_URL}
             PAYMENT_FAIL_URL: ${PAYMENT_FAIL_URL}
+            GITHUB_USER: ${GITHUB_USER}
+            GITHUB_TOKEN: ${GITHUB_TOKEN}
         networks:
             - first-ticket-network
         healthcheck:
