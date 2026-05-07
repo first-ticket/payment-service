@@ -15,6 +15,7 @@ import com.firstticket.paymentservice.domain.service.dto.TossCancelResult;
 import com.firstticket.paymentservice.domain.service.dto.TossConfirmResult;
 import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentCompletedPayload;
 import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentFailedPayload;
+import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentRefundCompletedPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -157,6 +158,20 @@ public class PaymentCommandService {
         // 5. 결제 상태 변경
         payment.refund();
         paymentRepository.save(payment);
+
+        // 6. 환불 완료 이벤트
+        try {
+            Events.publish(
+                UUID.randomUUID().toString(),
+                "PAYMENT",
+                payment.getId(),
+                "payment.refund.completed",
+                PaymentRefundCompletedPayload.from(payment)
+            );
+        } catch (Exception e) {
+            log.error("환불 완료 이벤트 발행 실패 - paymentId: {}", payment.getId(), e);
+            // 보상 경로 연결
+        }
 
         return PaymentResult.from(payment);
     }
