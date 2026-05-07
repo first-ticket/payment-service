@@ -160,13 +160,18 @@ public class PaymentCommandService {
         paymentRepository.save(payment);
 
         // 6. 환불 완료 이벤트
-        Events.publish(
-            UUID.randomUUID().toString(),
-            "PAYMENT",
-            payment.getId(),
-            "payment.refund.completed",
-            PaymentRefundCompletedPayload.from(payment)
-        );
+        try {
+            Events.publish(
+                UUID.randomUUID().toString(),
+                "PAYMENT",
+                payment.getId(),
+                "payment.refund.completed",
+                PaymentRefundCompletedPayload.from(payment)
+            );
+        } catch (Exception e) {
+            log.error("환불 완료 이벤트 발행 실패 - paymentId: {}", payment.getId(), e);
+            // 보상 경로 연결
+        }
 
         return PaymentResult.from(payment);
     }
