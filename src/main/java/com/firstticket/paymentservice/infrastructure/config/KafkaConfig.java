@@ -33,18 +33,18 @@ public class KafkaConfig {
 
         return errorHandler;
     }
-    
+
     @Bean
-    public NewTopic bookingRefundDltTopic() {
-        return TopicBuilder.name("booking.refund.request.DLT")
+    public NewTopic bookingExpiredDltTopic() {
+        return TopicBuilder.name("booking.expired.DLT")
             .partitions(3)
             .replicas(1)
             .build();
     }
 
     @Bean
-    public NewTopic bookingCancelDltTopic() {
-        return TopicBuilder.name("booking.cancel.request.DLT")
+    public NewTopic bookingCancelRequestedDltTopic() {
+        return TopicBuilder.name("booking.cancel.requested.DLT")
             .partitions(3)
             .replicas(1)
             .build();

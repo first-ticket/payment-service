@@ -20,12 +20,12 @@ public class PaymentKafkaConsumer {
     private final ObjectMapper objectMapper;
 
     // 좌석 선점 시간 만료
-    @KafkaListener(topics = "${kafka.topics.booking-refund}", groupId = "payment-service")
+    @KafkaListener(topics = "${kafka.topics.booking-expired}", groupId = "payment-service")
     public void handleBookingRefund(ConsumerRecord<String, String> record) {
         try {
             BookingRefundPayload payload = objectMapper.readValue(record.value(), BookingRefundPayload.class);
 
-            log.info("booking.refund.request 수신 - paymentId: {}, reason: {}",
+            log.info("booking.expired 수신 - paymentId: {}",
                 payload.paymentId(), payload.reason());
 
             paymentCommandService.refundPayment(
@@ -45,12 +45,12 @@ public class PaymentKafkaConsumer {
     }
 
     // 사용자 예매 취소
-    @KafkaListener(topics = "${kafka.topics.booking-cancel}", groupId = "payment-service")
+    @KafkaListener(topics = "${kafka.topics.booking-cancel-requested}", groupId = "payment-service")
     public void handleBookingCancel(ConsumerRecord<String, String> record) {
         try {
             BookingRefundPayload payload = objectMapper.readValue(record.value(), BookingRefundPayload.class);
 
-            log.info("booking.cancel.request 수신 - paymentId: {}, reason: {}",
+            log.info("booking.cancel.requested 수신 - paymentId: {}, reason: {}",
                 payload.paymentId(), payload.reason());
 
             paymentCommandService.refundPayment(
