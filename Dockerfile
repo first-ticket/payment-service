@@ -16,10 +16,11 @@ RUN --mount=type=secret,id=github_token \
     GITHUB_USER=$GITHUB_USER \
     ./gradlew dependencies --no-daemon || true
 
-RUN ./gradlew dependencies --no-daemon
-
 COPY src src
-RUN ./gradlew clean bootJar --no-daemon -x test
+RUN --mount=type=secret,id=github_token \
+    GITHUB_TOKEN="$(cat /run/secrets/github_token)" \
+    GITHUB_USER=$GITHUB_USER \
+    ./gradlew clean bootJar --no-daemon -x test -x asciidoctor
 
 RUN java -Djarmode=layertools -jar build/libs/*.jar extract
 
