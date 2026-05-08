@@ -92,4 +92,36 @@ class PaymentTest {
         payment.fail(-1); // 이미 만료 (-1초)
         assertThat(payment.isFinalFailed()).isTrue();
     }
+
+    @Test
+    @DisplayName("최종 실패 시 FINAL_FAILED 상태")
+    void final_fail_payment_status_final_failed() {
+        Payment payment = createPayment();
+        payment.fail(-1); // 이미 만료
+        payment.finalFail();
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FINAL_FAILED);
+    }
+
+    @Test
+    @DisplayName("FINAL_FAILED 상태에서 confirm 시 예외")
+    void confirm_final_failed_payment_throws_exception() {
+        Payment payment = createPayment();
+        payment.fail(-1);
+        payment.finalFail();
+        assertThatThrownBy(() -> payment.confirm("paymentKey", LocalDateTime.now()))
+            .isInstanceOf(PaymentException.class)
+            .satisfies(e -> assertThat(((PaymentException) e).getErrorCode())
+                .isEqualTo(PaymentErrorCode.PAYMENT_INVALID_STATUS));
+    }
+
+    @Test
+    @DisplayName("선점 시간 만료 전에는 finalFail 호출 시 예외")
+    void final_fail_before_expired_throws_exception() {
+        Payment payment = createPayment();
+        payment.fail(300); // 아직 만료 안 됨
+        assertThatThrownBy(() -> payment.finalFail())
+            .isInstanceOf(PaymentException.class)
+            .satisfies(e -> assertThat(((PaymentException) e).getErrorCode())
+                .isEqualTo(PaymentErrorCode.PAYMENT_INVALID_STATUS));
+    }
 }
