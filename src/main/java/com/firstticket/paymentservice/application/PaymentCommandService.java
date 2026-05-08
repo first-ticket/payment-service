@@ -18,6 +18,7 @@ import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentFailed
 import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentRefundCompletedPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,15 @@ public class PaymentCommandService {
 
     private final PaymentRepository paymentRepository;
     private final TossPaymentsPort tossPaymentsPort;
+
+    @Value("${kafka.topics.payment-completed}")
+    private String paymentCompletedTopic;
+
+    @Value("${kafka.topics.payment-failed}")
+    private String paymentFailedTopic;
+
+    @Value("${kafka.topics.payment-refund-completed}")
+    private String paymentRefundCompletedTopic;
 
     @Transactional
     public PaymentResult createPayment(CreatePaymentCommand command) {
@@ -104,7 +114,7 @@ public class PaymentCommandService {
                     UUID.randomUUID().toString(),
                     "PAYMENT",
                     payment.getId(),
-                    "payment.failed",
+                    paymentFailedTopic,
                     PaymentFailedPayload.from(payment, "토스 결제 승인 실패")
                 );
             }
@@ -121,7 +131,7 @@ public class PaymentCommandService {
             UUID.randomUUID().toString(),
             "PAYMENT",
             payment.getId(),
-            "payment.completed",
+            paymentCompletedTopic,
             PaymentCompletedPayload.from(payment)
         );
 
@@ -165,7 +175,7 @@ public class PaymentCommandService {
                 UUID.randomUUID().toString(),
                 "PAYMENT",
                 payment.getId(),
-                "payment.refund.completed",
+                paymentRefundCompletedTopic,
                 PaymentRefundCompletedPayload.from(payment)
             );
         } catch (Exception e) {
