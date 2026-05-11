@@ -7,6 +7,7 @@ import com.firstticket.paymentservice.domain.PaymentStatus;
 import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentFailedPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,9 @@ import java.util.UUID;
 public class PaymentScheduler {
 
     private final PaymentRepository paymentRepository;
+
+    @Value("${kafka.topics.payment-failed}")
+    private String paymentFailedTopic;
 
     @Scheduled(fixedDelay = 60000)
     @Transactional
@@ -41,7 +45,7 @@ public class PaymentScheduler {
                     UUID.randomUUID().toString(),
                     "PAYMENT",
                     payment.getId(),
-                    "payment.failed",
+                    paymentFailedTopic,
                     PaymentFailedPayload.from(payment, "결제 시간 만료")
                 );
             } catch (Exception e) {

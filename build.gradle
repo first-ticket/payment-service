@@ -15,7 +15,10 @@ java {
     }
 }
 
-// .env 파일 읽기
+configurations {
+    asciidoctorExt
+}
+
 def env = [:]
 def envFile = rootProject.file(".env")
 if (envFile.exists()) {
@@ -82,6 +85,9 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    runtimeOnly 'io.zipkin.reporter2:zipkin-reporter-brave'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
@@ -95,7 +101,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-    testImplementation 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -107,16 +113,32 @@ tasks.named('test') {
 asciidoctor {
     inputs.dir snippetsDir
     dependsOn test
-
+    configurations 'asciidoctorExt'
     baseDirFollowsSourceFile()
     attributes(
         'snippets': snippetsDir
     )
 }
 
-bootJar {
-    dependsOn asciidoctor
-    from("${asciidoctor.outputDir}") {
-        into 'static/docs'
+tasks.named('asciidoctor') {
+    doFirst {
+        delete file('src/main/resources/static/docs')
     }
+}
+
+tasks.register('copyDocument', Copy) {
+    dependsOn asciidoctor
+    from layout.buildDirectory.dir("docs/asciidoc")
+    into layout.projectDirectory.dir("src/main/resources/static/docs")
+}
+
+tasks.register('docs') {
+    dependsOn copyDocument
+    description = 'REST Docs 빌드 (test → asciidoctor → copy)'
+    group = 'documentation'
+}
+
+bootJar {
+    // Rest Docs는 개발 환경에서만 사용
+    // 도커 빌드 시 테스트 실행 방지를 위해 asciidoctor 의존성 제거
 }

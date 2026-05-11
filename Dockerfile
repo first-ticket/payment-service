@@ -12,14 +12,17 @@ RUN chmod +x gradlew
 ARG GITHUB_USER
 
 RUN --mount=type=secret,id=github_token \
-    GITHUB_TOKEN="$(cat /run/secrets/github_token)" \
-    GITHUB_USER=$GITHUB_USER \
+    export GITHUB_TOKEN="$(cat /run/secrets/github_token)" && \
+    export GITHUB_USER=$GITHUB_USER && \
     ./gradlew dependencies --no-daemon || true
 
-RUN ./gradlew dependencies --no-daemon
-
 COPY src src
-RUN ./gradlew clean bootJar --no-daemon -x test
+RUN --mount=type=secret,id=github_token \
+    GITHUB_TOKEN="$(cat /run/secrets/github_token)" \
+    GITHUB_USER="$GITHUB_USER" \
+    ./gradlew clean bootJar --no-daemon -x test -x asciidoctor \
+    -PGITHUB_USER="$GITHUB_USER" \
+    -PGITHUB_TOKEN="$(cat /run/secrets/github_token)"
 
 RUN java -Djarmode=layertools -jar build/libs/*.jar extract
 
