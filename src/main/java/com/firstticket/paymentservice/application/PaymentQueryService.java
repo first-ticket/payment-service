@@ -34,7 +34,7 @@ public class PaymentQueryService {
 
     @Transactional(readOnly = true)
     public List<PaymentResult> getMyPayments(UUID userId) {
-        return paymentRepository.findAllByUserId(userId)
+        return paymentRepository.findAllByUserIdWithHistories(userId)
             .stream()
             .map(PaymentResult::from)
             .toList();

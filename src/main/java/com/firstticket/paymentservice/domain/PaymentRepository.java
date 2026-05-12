@@ -23,4 +23,6 @@ public interface PaymentRepository {
     Page<Payment> findAll(Pageable pageable);
 
     List<Payment> findAllByStatusAndRequestedAtBefore(PaymentStatus status, LocalDateTime expiredAt);
+
+    List<Payment> findAllByUserIdWithHistories(UUID userId);
 }

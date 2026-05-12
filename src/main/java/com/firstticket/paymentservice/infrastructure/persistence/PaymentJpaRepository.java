@@ -5,6 +5,8 @@ import com.firstticket.paymentservice.domain.PaymentStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,4 +23,7 @@ public interface PaymentJpaRepository extends JpaRepository<Payment, UUID> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Payment> findAllByStatusAndRequestedAtBefore(PaymentStatus status, LocalDateTime expiredAt);
+
+    @Query("SELECT DISTINCT p FROM Payment p LEFT JOIN FETCH p.histories WHERE p.userId = :userId")
+    List<Payment> findAllByUserIdWithHistories(@Param("userId") UUID userId);
 }

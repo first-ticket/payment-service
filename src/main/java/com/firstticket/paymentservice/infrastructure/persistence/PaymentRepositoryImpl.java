@@ -45,4 +45,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public List<Payment> findAllByStatusAndRequestedAtBefore(PaymentStatus status, LocalDateTime expiredAt) {return paymentJpaRepository.findAllByStatusAndRequestedAtBefore(status, expiredAt);}
+
+    @Override
+    public List<Payment> findAllByUserIdWithHistories(UUID userId) {return paymentJpaRepository.findAllByUserIdWithHistories(userId);}
 }
