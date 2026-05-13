@@ -5,6 +5,7 @@ import com.firstticket.paymentservice.application.PaymentCommandService;
 import com.firstticket.paymentservice.application.PaymentQueryService;
 import com.firstticket.paymentservice.application.dto.result.PaymentResult;
 import com.firstticket.paymentservice.domain.PaymentStatus;
+import com.firstticket.paymentservice.presentation.dto.request.PaymentConfirmRequest;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentRefundRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
@@ -194,5 +197,65 @@ class PaymentControllerTest {
                     fieldWithPath("data.approvedAt").description("결제 승인 시간")
                 )
             ));
+    }
+
+    @Test
+    @DisplayName("결제 승인 성공")
+    void confirm_payment_success() throws Exception {
+        UUID userId = UUID.randomUUID();
+        PaymentResult result = createPaymentResult(userId);
+        PaymentConfirmRequest request = new PaymentConfirmRequest(
+            "paymentKey123", "orderId123", 50000
+        );
+
+        given(paymentCommandService.confirmPayment(any())).willReturn(result);
+
+        mockMvc.perform(RestDocumentationRequestBuilders
+                .post("/api/v1/payments/confirm")
+                .header("X-User-Id", userId.toString())
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("전체 결제 목록 조회 성공 (어드민)")
+    void get_all_payments_success() throws Exception {
+        UUID userId = UUID.randomUUID();
+        PaymentResult result = createPaymentResult(userId);
+        Page<PaymentResult> page = new PageImpl<>(List.of(result));
+
+        given(paymentQueryService.getAllPayments(any())).willReturn(page);
+
+        mockMvc.perform(RestDocumentationRequestBuilders
+                .get("/api/v1/payments/admin")
+                .header("X-User-Id", userId.toString())
+                .header("X-User-Role", "ADMIN"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("결제 승인 리다이렉트 성공")
+    void confirm_payment_redirect_success() throws Exception {
+        PaymentResult result = new PaymentResult(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            "orderId123",
+            50000,
+            PaymentStatus.SUCCESS,
+            LocalDateTime.now(),
+            LocalDateTime.now()
+        );
+
+        given(paymentCommandService.confirmPayment(any())).willReturn(result);
+
+        mockMvc.perform(RestDocumentationRequestBuilders
+                .get("/api/v1/payments/confirm-redirect")
+                .param("paymentKey", "paymentKey123")
+                .param("orderId", "orderId123")
+                .param("amount", "50000"))
+            .andExpect(status().isOk());
     }
 }
