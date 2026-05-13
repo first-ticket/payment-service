@@ -124,4 +124,89 @@ class PaymentTest {
             .satisfies(e -> assertThat(((PaymentException) e).getErrorCode())
                 .isEqualTo(PaymentErrorCode.PAYMENT_INVALID_STATUS));
     }
+
+    // 1. FAILED 상태에서 confirm 성공 (재시도)
+    @Test
+    @DisplayName("FAILED 상태에서 재시도 시 SUCCESS 상태")
+    void confirm_failed_payment_status_success() {
+        Payment payment = createPayment();
+        payment.fail(300);
+        payment.confirm("paymentKey", LocalDateTime.now());
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.SUCCESS);
+    }
+
+    // 2. PENDING 상태에서 fail 두 번 호출 시 예외
+    @Test
+    @DisplayName("FAILED 상태에서 fail 호출 시 예외")
+    void fail_already_failed_throws_exception() {
+        Payment payment = createPayment();
+        payment.fail(300);
+        assertThatThrownBy(() -> payment.fail(300))
+            .isInstanceOf(PaymentException.class)
+            .satisfies(e -> assertThat(((PaymentException) e).getErrorCode())
+                .isEqualTo(PaymentErrorCode.PAYMENT_INVALID_STATUS));
+    }
+
+    // 3. SUCCESS 상태에서 환불 시 REFUNDED
+    @Test
+    @DisplayName("SUCCESS 상태에서만 환불 가능")
+    void refund_only_success_payment() {
+        Payment payment = createPayment();
+        payment.confirm("paymentKey", LocalDateTime.now());
+        payment.refund();
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUNDED);
+    }
+
+    // 4. REFUNDED 상태에서 환불 시 예외
+    @Test
+    @DisplayName("이미 환불된 결제 환불 시 예외")
+    void refund_already_refunded_throws_exception() {
+        Payment payment = createPayment();
+        payment.confirm("paymentKey", LocalDateTime.now());
+        payment.refund();
+        assertThatThrownBy(() -> payment.refund())
+            .isInstanceOf(PaymentException.class)
+            .satisfies(e -> assertThat(((PaymentException) e).getErrorCode())
+                .isEqualTo(PaymentErrorCode.PAYMENT_INVALID_STATUS));
+    }
+
+    // 5. FINAL_FAILED 상태에서 환불 시 예외
+    @Test
+    @DisplayName("FINAL_FAILED 상태에서 환불 시 예외")
+    void refund_final_failed_throws_exception() {
+        Payment payment = createPayment();
+        payment.fail(-1);
+        payment.finalFail();
+        assertThatThrownBy(() -> payment.refund())
+            .isInstanceOf(PaymentException.class)
+            .satisfies(e -> assertThat(((PaymentException) e).getErrorCode())
+                .isEqualTo(PaymentErrorCode.PAYMENT_INVALID_STATUS));
+    }
+
+    // 6. 결제 생성 시 histories 비어있음
+    @Test
+    @DisplayName("결제 생성 시 histories 비어있음")
+    void create_payment_histories_empty() {
+        Payment payment = createPayment();
+        assertThat(payment.getHistories()).isEmpty();
+    }
+
+    // 7. 결제 승인 시 histories에 SUCCESS 추가
+    @Test
+    @DisplayName("결제 승인 시 histories에 SUCCESS 추가")
+    void confirm_payment_add_history() {
+        Payment payment = createPayment();
+        payment.confirm("paymentKey", LocalDateTime.now());
+        assertThat(payment.getHistories()).hasSize(1);
+        assertThat(payment.getHistories().get(0).getStatus())
+            .isEqualTo(PaymentStatus.SUCCESS);
+    }
+
+    // 8. 결제 생성 시 requestedAt 설정
+    @Test
+    @DisplayName("결제 생성 시 requestedAt 설정됨")
+    void create_payment_requested_at_not_null() {
+        Payment payment = createPayment();
+        assertThat(payment.getRequestedAt()).isNotNull();
+    }
 }
