@@ -7,6 +7,11 @@ spring:
             - "optional:file:.env[.properties]"
             - "optional:configserver:"
     cloud:
+        inetutils:
+            preferred-networks:
+                - 10\.
+                - 172\.
+                - 192\.168\.
         config:
             username: ${CONFIG_SERVER_USERNAME}
             password: ${CONFIG_SERVER_PASSWORD}
