@@ -5,6 +5,7 @@ import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentRepository;
 import com.firstticket.paymentservice.domain.exception.PaymentErrorCode;
 import com.firstticket.paymentservice.domain.exception.PaymentException;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ public class PaymentQueryService {
 
     private final PaymentRepository paymentRepository;
 
+    @Cacheable(value = "payment", key = "#paymentId")
     @Transactional(readOnly = true)
     public PaymentResult getPayment(UUID paymentId, UUID userId) {
         Payment payment = paymentRepository.findById(paymentId)

@@ -3,6 +3,7 @@ package com.firstticket.paymentservice.application.dto.result;
 import com.firstticket.paymentservice.domain.Payment;
 import com.firstticket.paymentservice.domain.PaymentStatus;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ public record PaymentResult(
     PaymentStatus status,
     LocalDateTime requestedAt,
     LocalDateTime approvedAt
-) {
+) implements Serializable {
     public static PaymentResult from(Payment payment) {
         return new PaymentResult(
             payment.getId(),

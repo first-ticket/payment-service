@@ -19,6 +19,7 @@ import com.firstticket.paymentservice.infrastructure.messaging.dto.PaymentRefund
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,6 +69,7 @@ public class PaymentCommandService {
             });
     }
 
+    @CacheEvict(value = "payment", key = "#command.orderId()")
     @Transactional
     public PaymentResult confirmPayment(ConfirmPaymentCommand command) {
         // 1. orderId로 결제 조회
@@ -138,6 +140,7 @@ public class PaymentCommandService {
         return PaymentResult.from(payment);
     }
 
+    @CacheEvict(value = "payment", key = "#command.paymentId()")
     @Transactional
     public PaymentResult refundPayment(RefundPaymentCommand command) {
         // 1. 결제 조회
