@@ -12,12 +12,16 @@ import com.firstticket.paymentservice.domain.PaymentStatus;
 import com.firstticket.paymentservice.domain.exception.PaymentErrorCode;
 import com.firstticket.paymentservice.domain.exception.PaymentException;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentConfirmRequest;
+import com.firstticket.paymentservice.presentation.dto.request.PaymentCreateRequest;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentRefundRequest;
 import com.firstticket.paymentservice.presentation.dto.response.PaymentResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +35,56 @@ public class PaymentController {
 
     private final PaymentCommandService paymentCommandService;
     private final PaymentQueryService paymentQueryService;
+
+    @Value("${payment.success-url}")
+    private String successUrl;
+
+    @Value("${payment.fail-url}")
+    private String failUrl;
+
+    // 결제 생성 (Booking 서비스 연동)
+    @PostMapping
+    public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
+        @RequestBody @Valid PaymentCreateRequest request) {
+        PaymentResponse response = PaymentResponse.from(
+            paymentCommandService.createPayment(request.toCommand())
+        );
+        return ApiResponse.success(PaymentSuccessCode.PAYMENT_CREATED, response);
+    }
+
+    // 토스 결제창
+    @GetMapping(value = "/payment-page", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<String> getPaymentPage(
+        @RequestParam String orderId,
+        @Positive @RequestParam Integer amount) {
+
+        String html = """
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+          <meta charset="UTF-8" />
+          <script src="https://js.tosspayments.com/v1/payment"></script>
+        </head>
+        <body>
+          <script>
+            const tossPayments = TossPayments("test_ck_QbgMGZzorzmyQnGjmOXkVl5E1em4");
+            tossPayments.requestPayment("카드", {
+              amount: %d,
+              orderId: "%s",
+              orderName: "First Ticket 예매",
+              customerName: "김토스",
+              successUrl: "%s",
+              failUrl: "%s"
+            });
+          </script>
+        </body>
+        </html>
+        """.formatted(amount, orderId, successUrl, failUrl);
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.TEXT_HTML)
+            .body(html);
+    }
 
     @PostMapping("/confirm")
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(
