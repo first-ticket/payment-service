@@ -7,18 +7,12 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Validated
-@ConditionalOnProperty(
-    prefix = "feature.internal-payments",
-    name = "enabled",
-    havingValue = "true"
-)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/internal/v1/payments")
