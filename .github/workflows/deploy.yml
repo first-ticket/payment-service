@@ -103,6 +103,6 @@ jobs:
               uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: task-definition.json
-                  service: payment-service-service
+                  service: payment-service-service-6ebx8c24
                   cluster: first-ticket-cluster
                   wait-for-service-stability: false
