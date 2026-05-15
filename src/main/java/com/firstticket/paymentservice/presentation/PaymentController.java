@@ -100,6 +100,16 @@ public class PaymentController {
         return ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRMED, PaymentResponse.from(result));
     }
 
+    @GetMapping("/fail")
+    public ResponseEntity<String> fail(
+        @RequestParam String code,
+        @RequestParam String message,
+        @RequestParam String orderId) {
+        return ResponseEntity.ok(
+            "결제가 실패하였습니다.\n실패 사유: " + message + "\n오류 코드: " + code
+        );
+    }
+
     /**
      * 테스트용 엔드포인트 - Booking 서비스 연동 완료 후 제거 예정
      * @deprecated 테스트 완료 후 제거 예정
