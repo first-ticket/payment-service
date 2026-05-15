@@ -76,8 +76,8 @@ dependencyManagement {
 
 dependencies {
     implementation 'com.first-ticket:common:0.0.4-SNAPSHOT'
-    implementation 'com.first-ticket:common-messaging:0.0.1-SNAPSHOT'
-    implementation 'com.first-ticket:common-jpa:0.0.1-SNAPSHOT'
+    implementation 'com.first-ticket:common-messaging:0.0.2-SNAPSHOT'
+    implementation 'com.first-ticket:common-jpa:0.0.2-SNAPSHOT'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'org.postgresql:postgresql'

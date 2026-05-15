@@ -100,22 +100,48 @@ public class PaymentController {
         return ApiResponse.success(PaymentSuccessCode.PAYMENT_CONFIRMED, PaymentResponse.from(result));
     }
 
-    /**
-     * 테스트용 엔드포인트 - Booking 서비스 연동 완료 후 제거 예정
-     * @deprecated 테스트 완료 후 제거 예정
-     */
-    @Deprecated
-    @GetMapping(value = "/confirm-redirect", produces = "application/json;charset=UTF-8")
-    public ResponseEntity<ApiResponse<PaymentResponse>> confirmPaymentRedirect(
+    @GetMapping("/fail")
+    public ResponseEntity<String> fail(
+        @RequestParam String code,
+        @RequestParam String message,
+        @RequestParam String orderId) {
+        return ResponseEntity.ok(
+            "결제가 실패하였습니다.\n실패 사유: " + message + "\n오류 코드: " + code
+        );
+    }
+
+    @GetMapping(value = "/confirm-redirect", produces = "text/html;charset=UTF-8")
+    public ResponseEntity<String> confirmPaymentRedirect(
         @RequestParam String paymentKey,
         @RequestParam String orderId,
         @RequestParam Integer amount) {
-        PaymentResponse response = PaymentResponse.from(
-            paymentCommandService.confirmPayment(
-                new ConfirmPaymentCommand(paymentKey, orderId, amount)
-            )
+
+        PaymentResult result = paymentCommandService.confirmPayment(
+            new ConfirmPaymentCommand(paymentKey, orderId, amount)
         );
-        return ApiResponse.success(CommonSuccessCode.OK, response);
+
+        String html = """
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head><meta charset="UTF-8" /><title>결제 완료</title></head>
+        <body>
+          <h2>결제가 성공하였습니다! 🎉</h2>
+          <p>주문 ID: %s</p>
+          <p>결제 금액: %,d원</p>
+          <p>결제 상태: %s</p>
+          <p>결제 시간: %s</p>
+        </body>
+        </html>
+        """.formatted(
+            result.orderId(),
+            result.amount(),
+            result.status(),
+            result.approvedAt()
+        );
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.TEXT_HTML)
+            .body(html);
     }
 
     // 결제 상세 조회
