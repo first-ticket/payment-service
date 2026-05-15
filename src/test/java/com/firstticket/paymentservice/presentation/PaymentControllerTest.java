@@ -6,6 +6,7 @@ import com.firstticket.paymentservice.application.PaymentQueryService;
 import com.firstticket.paymentservice.application.dto.result.PaymentResult;
 import com.firstticket.paymentservice.domain.PaymentStatus;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentConfirmRequest;
+import com.firstticket.paymentservice.presentation.dto.request.PaymentCreateRequest;
 import com.firstticket.paymentservice.presentation.dto.request.PaymentRefundRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,8 +36,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.requestHe
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -78,6 +78,69 @@ class PaymentControllerTest {
             LocalDateTime.now(),
             LocalDateTime.now()
         );
+    }
+
+    @Test
+    @DisplayName("결제 생성 성공")
+    void create_payment_success() throws Exception {
+        UUID userId = UUID.randomUUID();
+        PaymentResult result = createPaymentResult(userId);
+        PaymentCreateRequest request = new PaymentCreateRequest(
+            UUID.randomUUID(), userId, 50000
+        );
+
+        given(paymentCommandService.createPayment(any())).willReturn(result);
+
+        mockMvc.perform(RestDocumentationRequestBuilders
+                .post("/api/v1/payments")
+                .header("X-User-Id", userId.toString())
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.success").value(true))
+            .andDo(document("payment-create",
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()),
+                requestHeaders(
+                    headerWithName("X-User-Id").description("사용자 UUID")
+                ),
+                requestFields(
+                    fieldWithPath("bookingId").description("예매 UUID"),
+                    fieldWithPath("userId").description("사용자 UUID"),
+                    fieldWithPath("finalAmount").description("결제 금액")
+                ),
+                responseFields(
+                    fieldWithPath("success").description("성공 여부"),
+                    fieldWithPath("code").description("응답 코드"),
+                    fieldWithPath("message").description("응답 메시지"),
+                    fieldWithPath("timestamp").description("응답 시간"),
+                    fieldWithPath("data.paymentId").description("결제 UUID"),
+                    fieldWithPath("data.userId").description("사용자 UUID"),
+                    fieldWithPath("data.orderId").description("주문 ID"),
+                    fieldWithPath("data.amount").description("결제 금액"),
+                    fieldWithPath("data.status").description("결제 상태"),
+                    fieldWithPath("data.requestedAt").description("결제 요청 시간"),
+                    fieldWithPath("data.approvedAt").description("결제 승인 시간")
+                )
+            ));
+    }
+
+    @Test
+    @DisplayName("토스 결제창 성공")
+    void get_payment_page_success() throws Exception {
+        mockMvc.perform(RestDocumentationRequestBuilders
+                .get("/api/v1/payments/payment-page")
+                .param("orderId", "orderId123")
+                .param("amount", "50000"))
+            .andExpect(status().isOk())
+            .andDo(document("payment-page",
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()),
+                queryParameters(
+                    parameterWithName("orderId").description("주문 ID"),
+                    parameterWithName("amount").description("결제 금액")
+                )
+            ));
     }
 
     @Test

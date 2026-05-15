@@ -1,0 +1,40 @@
+== Payment API 문서
+:toc:
+
+== 결제 생성
+
+include::{snippets}/payment-create/http-request.adoc[]
+include::{snippets}/payment-create/request-headers.adoc[]
+include::{snippets}/payment-create/request-fields.adoc[]
+include::{snippets}/payment-create/http-response.adoc[]
+include::{snippets}/payment-create/response-fields.adoc[]
+
+== 토스 결제창
+
+include::{snippets}/payment-page/http-request.adoc[]
+include::{snippets}/payment-page/query-parameters.adoc[]
+include::{snippets}/payment-page/http-response.adoc[]
+
+== 결제 상세 조회
+
+include::{snippets}/payment-get/http-request.adoc[]
+include::{snippets}/payment-get/path-parameters.adoc[]
+include::{snippets}/payment-get/request-headers.adoc[]
+include::{snippets}/payment-get/http-response.adoc[]
+include::{snippets}/payment-get/response-fields.adoc[]
+
+== 내 결제 목록 조회
+
+include::{snippets}/payment-get-my/http-request.adoc[]
+include::{snippets}/payment-get-my/request-headers.adoc[]
+include::{snippets}/payment-get-my/http-response.adoc[]
+include::{snippets}/payment-get-my/response-fields.adoc[]
+
+== 결제 환불
+
+include::{snippets}/payment-refund/http-request.adoc[]
+include::{snippets}/payment-refund/path-parameters.adoc[]
+include::{snippets}/payment-refund/request-headers.adoc[]
+include::{snippets}/payment-refund/request-fields.adoc[]
+include::{snippets}/payment-refund/http-response.adoc[]
+include::{snippets}/payment-refund/response-fields.adoc[]
