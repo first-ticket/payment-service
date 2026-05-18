@@ -15,6 +15,25 @@ include::{snippets}/payment-page/http-request.adoc[]
 include::{snippets}/payment-page/query-parameters.adoc[]
 include::{snippets}/payment-page/http-response.adoc[]
 
+== 결제 승인
+
+include::{snippets}/payment-confirm/http-request.adoc[]
+include::{snippets}/payment-confirm/request-fields.adoc[]
+include::{snippets}/payment-confirm/http-response.adoc[]
+include::{snippets}/payment-confirm/response-fields.adoc[]
+
+== 결제 승인 리다이렉트
+
+include::{snippets}/payment-confirm-redirect/http-request.adoc[]
+include::{snippets}/payment-confirm-redirect/query-parameters.adoc[]
+include::{snippets}/payment-confirm-redirect/http-response.adoc[]
+
+== 결제 실패
+
+include::{snippets}/payment-fail/http-request.adoc[]
+include::{snippets}/payment-fail/query-parameters.adoc[]
+include::{snippets}/payment-fail/http-response.adoc[]
+
 == 결제 상세 조회
 
 include::{snippets}/payment-get/http-request.adoc[]
@@ -29,6 +48,13 @@ include::{snippets}/payment-get-my/http-request.adoc[]
 include::{snippets}/payment-get-my/request-headers.adoc[]
 include::{snippets}/payment-get-my/http-response.adoc[]
 include::{snippets}/payment-get-my/response-fields.adoc[]
+
+== 전체 결제 목록 조회 (ADMIN)
+
+include::{snippets}/payment-get-all/http-request.adoc[]
+include::{snippets}/payment-get-all/request-headers.adoc[]
+include::{snippets}/payment-get-all/http-response.adoc[]
+include::{snippets}/payment-get-all/response-fields.adoc[]
 
 == 결제 환불
 
